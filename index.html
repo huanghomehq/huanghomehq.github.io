@@ -30,6 +30,8 @@ h1 { margin: 2px 0 0; font-family: 'Outfit', sans-serif; font-weight: 500; font-
 .sub { font-size: 15px; color: var(--text-2); margin-top: 4px; }
 .head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
 .round { width: 44px; height: 44px; border-radius: 22px; border: 1px solid var(--edge); background: var(--card); display: inline-flex; align-items: center; justify-content: center; padding: 0; }
+.pill { height: 44px; padding: 0 16px; border-radius: 22px; border: 1px solid var(--edge); background: var(--card); font-size: 15px; font-weight: 700; color: var(--green-ink); }
+.pill:disabled { color: var(--faint); font-weight: 400; cursor: default; }
 .hint { font-size: 13px; color: var(--muted); margin-bottom: 8px; }
 .chips { display: flex; flex-wrap: wrap; gap: 8px; }
 .chip { min-height: 44px; padding: 0 16px; border-radius: 22px; border: 1px solid var(--edge); background: var(--card); font-size: 15px; }
@@ -82,6 +84,7 @@ nav button[aria-current=page] { background: var(--green-bg); color: var(--green-
         <div class="sub" id="d-sub">&nbsp;</div>
       </div>
       <div style="display:flex;gap:8px">
+        <button class="pill" id="today" type="button" aria-label="Back to this week">Today</button>
         <button class="round" id="prev" aria-label="Previous week"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg></button>
         <button class="round" id="next" aria-label="Next week"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></button>
       </div>
@@ -203,8 +206,9 @@ function renderDinners() {
   var first = days[0], last = days[6];
   var planned = 0;
   days.forEach(function (d) { if ((S.dinners[ymd(d)] || '').trim()) planned++; });
-  $('d-sub').textContent = MON[first.getMonth()] + ' ' + first.getDate() + ' – ' + (last.getMonth() !== first.getMonth() ? MON[last.getMonth()] + ' ' : '') + last.getDate() +
-    (S.loaded ? ' · ' + planned + ' of 7 planned' : ' · loading…');
+  $('d-sub').innerHTML = esc(MON[first.getMonth()] + ' ' + first.getDate() + ' – ' + (last.getMonth() !== first.getMonth() ? MON[last.getMonth()] + ' ' : '') + last.getDate()) +
+    '<br><span style="color:var(--muted)">' + (S.loaded ? planned + ' of 7 planned' : 'loading…') + '</span>';
+  $('today').disabled = S.week === 0; // already showing this week
   var box = $('days');
   // Keep whatever is being typed: only rebuild rows when the week (or the day) changes.
   var stamp = S.week + '/' + today;
@@ -252,8 +256,14 @@ $('picks').addEventListener('click', function (e) {
   open.value = b.dataset.pick;
   saveDinner(open);
 });
-$('prev').addEventListener('click', function () { S.week--; S.dinners = {}; S.loaded = false; renderDinners(); load(); });
-$('next').addEventListener('click', function () { S.week++; S.dinners = {}; S.loaded = false; renderDinners(); load(); });
+function goWeek(w) {
+  if (w === S.week) return;
+  S.week = w; S.dinners = {}; S.loaded = false;
+  renderDinners(); load();
+}
+$('prev').addEventListener('click', function () { goWeek(S.week - 1); });
+$('next').addEventListener('click', function () { goWeek(S.week + 1); });
+$('today').addEventListener('click', function () { goWeek(0); });
 
 /* ---------- groceries ---------- */
 function openItems() { return S.items.filter(function (i) { return !i.done; }); }
