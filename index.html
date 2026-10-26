@@ -169,7 +169,10 @@ function api(name, params, ok) {
     })
     .catch(function (e) {
       var m = String(e && e.message);
-      setStatus(/unauthorized/.test(m) ? 'This link is out of date. Ask for the new Home HQ link.' : 'Couldn’t reach Home HQ. Check your connection; it will retry.');
+      var id = (CONN.url.match(/\/s\/([^/]+)\//) || [])[1] || CONN.url;
+      setStatus(/unauthorized/.test(m)
+        ? 'This link’s key doesn’t match. Ask for the new Home HQ link.'
+        : 'Couldn’t reach Home HQ (script ID ending …' + id.slice(-6) + '). If you’re online, this link may point to the wrong script ID; it will retry.');
       if (ok) ok(null, e);
     });
 }

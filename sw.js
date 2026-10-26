@@ -1,7 +1,7 @@
 /* Home HQ phone app: keeps the app's own files on the phone so it opens quickly and
  * shows up even with a weak signal. Always tries the network first, so updates arrive
  * right away. Requests to Google (the list itself) are never cached. */
-const CACHE = 'homehq-app-v1';
+const CACHE = 'homehq-app-v2';
 const FILES = ['./', 'index.html', 'manifest.webmanifest', 'icon-192.png', 'apple-touch-icon.png'];
 
 self.addEventListener('install', (e) => {
