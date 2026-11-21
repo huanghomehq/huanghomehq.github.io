@@ -1,5 +1,5 @@
 {
-  "version": "2026-11-21",
+  "version": "2026-11-21.3",
   "weekOf": "Mon Nov 16, 2026",
   "focus": [
     "Letters of the week: U and H, plus review T, L, E, F",
@@ -29,14 +29,23 @@
     "9"
   ],
   "countThings": [
-    "scarecrow",
     "apple",
     "acorn",
     "leaf",
-    "pumpkin"
+    "pumpkin",
+    "scarecrow",
+    "firetruck",
+    "dumptruck",
+    "rocket",
+    "hero",
+    "plane",
+    "cone",
+    "star"
   ],
   "colorPictures": [
     "turkey",
+    "firetruck",
+    "hero",
     "pumpkin",
     "apple"
   ],

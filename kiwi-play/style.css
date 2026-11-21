@@ -345,3 +345,14 @@ h1 { margin: 0; font-size: 48px; font-weight: 700; }
 .dr-hold.holding .dr-fill { width: 100%; transition: width 2s linear; }
 
 .g-input { font: inherit; font-size: 15px; padding: 8px 10px; border: 1px solid #C9D2CF; border-radius: 10px; width: 160px; user-select: text; -webkit-user-select: text; }
+
+/* v1.11: coloring page picker with picture tabs */
+.dr-picker2 { background: #fff; border-radius: 36px; padding: 24px; width: 1060px; height: 700px; display: flex; flex-direction: column; gap: 18px; }
+.dr-tabs { display: flex; gap: 16px; }
+.dr-tab { width: 150px; height: 100px; border-radius: 24px; background: var(--bg); border: 5px solid var(--bg); display: flex; align-items: center; justify-content: center; }
+.dr-tab.on { border-color: var(--teal); background: var(--tealSoft); }
+.dr-tab .dr-tab-svg { width: 90%; height: 90%; }
+.dr-tab.close { margin-left: auto; background: var(--tealSoft); color: var(--teal); }
+.dr-tab.close svg { width: 54px; height: 54px; }
+.dr-pgrid { flex: 1; overflow-y: auto; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; align-content: start; touch-action: pan-y; padding: 2px; }
+.dr-pgrid .dr-tpl { height: 170px; }

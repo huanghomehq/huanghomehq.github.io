@@ -1,7 +1,7 @@
 /* Kiwi Play — app shell: boot, home, game bar, pause, done/rest screens, grown-ups area, log, offline. */
 (function () {
   'use strict';
-  const APP_VERSION = '1.10.0';
+  const APP_VERSION = '1.12.0';
   const $ = (h) => { const t = document.createElement('template'); t.innerHTML = h.trim(); return t.content.firstElementChild; };
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const load = (k, d) => { try { const v = localStorage.getItem('jla.' + k); return v ? JSON.parse(v) : d; } catch (e) { return d; } };
@@ -429,7 +429,7 @@
   }
 
   /* ---------- offline check (grown-ups) ---------- */
-  const OFFLINE_FILES = ['index.html', 'style.css', 'art.js', 'games.js', 'app.js', 'lessons.json', 'stories.json'];
+  const OFFLINE_FILES = ['index.html', 'style.css', 'art.js', 'games.js', 'pages.js', 'app.js', 'lessons.json', 'stories.json'];
   function offlineStatus() {
     if (!('caches' in window) || !navigator.serviceWorker) return Promise.resolve(null);
     return caches.keys().then((ks) => { const k = ks.filter((x) => x.indexOf('jla-') === 0).pop(); if (!k) return { ok: false, have: 0 }; return caches.open(k).then((c) => Promise.all(OFFLINE_FILES.map((f) => c.match(f, { ignoreSearch: true })))).then((r) => ({ ok: r.every(Boolean), have: r.filter(Boolean).length })); }).catch(() => null);
@@ -461,7 +461,11 @@
     car: '<path ' + OS + ' d="M240 720 L340 520 C360 480 400 460 440 460 H1020 C1070 460 1110 480 1140 520 L1280 680 H1340 C1370 680 1390 700 1390 730 V820 H220 V760 Z"/><path ' + OS + ' d="M420 540 H700 V680 H360 Z M760 540 H1000 L1120 680 H760 Z"/><circle ' + OS + ' cx="460" cy="840" r="110"/><circle ' + OS + ' cx="1110" cy="840" r="110"/><path ' + OS + ' d="M80 980 H1520"/>',
     turkey: '<ellipse ' + OS + ' cx="560" cy="420" rx="90" ry="220" transform="rotate(-50 560 420)"/><ellipse ' + OS + ' cx="700" cy="320" rx="90" ry="220" transform="rotate(-20 700 320)"/><ellipse ' + OS + ' cx="900" cy="320" rx="90" ry="220" transform="rotate(20 900 320)"/><ellipse ' + OS + ' cx="1040" cy="420" rx="90" ry="220" transform="rotate(50 1040 420)"/><ellipse ' + OS + ' cx="800" cy="740" rx="230" ry="250"/><circle ' + OS + ' cx="800" cy="450" r="130"/><path ' + OS + ' d="M765 470 L835 470 L800 540 Z"/><circle cx="755" cy="420" r="18" fill="#2B3B39"/><circle cx="845" cy="420" r="18" fill="#2B3B39"/><path ' + OS + ' d="M720 985 V1060 M880 985 V1060 M680 1060 H760 M840 1060 H920"/>'
   };
-  const tplSvg = (k, cls) => '<svg viewBox="0 0 ' + DW + ' ' + DH + '" class="' + (cls || 'dr-outline') + '" aria-hidden="true">' + DTPL[k] + '</svg>';
+  // All coloring pages: trucks and superheroes from pages.js, plus the original set
+  const PG = (window.PAGES || { trucks: {}, heroes: {} });
+  const PAGE_GROUPS = { trucks: PG.trucks || {}, heroes: PG.heroes || {}, more: DTPL };
+  const ALL_TPL = Object.assign({}, DTPL, PG.trucks || {}, PG.heroes || {});
+  const tplSvg = (k, cls) => '<svg viewBox="0 0 ' + DW + ' ' + DH + '" class="' + (cls || 'dr-outline') + '" aria-hidden="true">' + (ALL_TPL[k] || '') + '</svg>';
   function artDB() { return new Promise((res, rej) => { if (!window.indexedDB) { rej(new Error('no indexedDB')); return; } const r = indexedDB.open('kiwi-play-drawing', 1); r.onupgradeneeded = () => r.result.createObjectStore('pics', { keyPath: 'id' }); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }); }
   function artOp(mode, fn) { return artDB().then((d) => new Promise((res, rej) => { const tx = d.transaction('pics', mode); const q = fn(tx.objectStore('pics')); tx.oncomplete = () => res(q && q.result); tx.onerror = () => rej(tx.error); })); }
   const allArt = () => artOp('readonly', (s) => s.getAll()).then((a) => (a || []).sort((x, y) => y.updated - x.updated)).catch(() => []);
@@ -532,7 +536,7 @@
         const finish = () => out.toBlob((b) => { cur.png = b; cur.updated = Date.now(); artOp('readwrite', (s) => s.put(cur)).then(res, res); }, 'image/png');
         if (!cur.template) { finish(); return; }
         const im = new Image(); im.onload = () => { o.drawImage(im, 0, 0, DW, DH); finish(); }; im.onerror = finish;
-        im.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + DW + ' ' + DH + '">' + DTPL[cur.template] + '</svg>');
+        im.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + DW + ' ' + DH + '">' + (ALL_TPL[cur.template] || '') + '</svg>');
       });
     }
     const colorsEl = el.querySelector('.dr-colors'), sizesEl = el.querySelector('.dr-sizes'), er = el.querySelector('#eraser');
@@ -549,12 +553,24 @@
     refresh();
   }
 
+  let pickerTab = 'trucks';
   function tplPicker(el) {
-    const ov = $('<div class="overlay"><div class="dr-picker"></div></div>');
-    const g = ov.querySelector('.dr-picker');
-    const blank = $('<button class="dr-tpl blank" aria-label="Blank page"></button>'); blank.addEventListener('click', () => studio(null)); g.appendChild(blank);
-    Object.keys(DTPL).forEach((k) => { const b = $('<button class="dr-tpl" aria-label="' + k + ' to color">' + tplSvg(k, 'dr-tpl-svg') + '</button>'); b.addEventListener('click', () => studio({ id: 'p' + Date.now(), template: k, png: null, updated: Date.now() })); g.appendChild(b); });
-    const close = $('<button class="dr-tpl close" aria-label="Close">' + DI.x + '</button>'); close.addEventListener('click', () => ov.remove()); g.appendChild(close);
+    const ov = $('<div class="overlay"><div class="dr-picker2"><div class="dr-tabs"></div><div class="dr-pgrid"></div></div></div>');
+    const tabs = ov.querySelector('.dr-tabs'), grid = ov.querySelector('.dr-pgrid');
+    const fill = () => {
+      grid.innerHTML = '';
+      const blank = $('<button class="dr-tpl blank" aria-label="Blank page"></button>'); blank.addEventListener('click', () => studio(null)); grid.appendChild(blank);
+      Object.keys(PAGE_GROUPS[pickerTab]).forEach((k) => { const b = $('<button class="dr-tpl" aria-label="' + k + ' to color">' + tplSvg(k, 'dr-tpl-svg') + '</button>'); b.addEventListener('click', () => studio({ id: 'p' + Date.now(), template: k, png: null, updated: Date.now() })); grid.appendChild(b); });
+      tabs.querySelectorAll('button[data-t]').forEach((t) => t.classList.toggle('on', t.dataset.t === pickerTab));
+      grid.scrollTop = 0;
+    };
+    Object.keys(PAGE_GROUPS).forEach((t) => {
+      const icon = { trucks: 'firetruck', heroes: 'starhero', more: 'pumpkin' }[t];
+      const b = $('<button class="dr-tab" data-t="' + t + '" aria-label="' + t + '">' + tplSvg(icon, 'dr-tab-svg') + '</button>');
+      b.addEventListener('click', () => { pickerTab = t; fill(); }); tabs.appendChild(b);
+    });
+    const close = $('<button class="dr-tab close" aria-label="Close">' + DI.x + '</button>'); close.addEventListener('click', () => ov.remove()); tabs.appendChild(close);
+    fill();
     el.appendChild(ov);
   }
 

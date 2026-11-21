@@ -1,7 +1,7 @@
 /* Kiwi Play offline support. Only removes its own old caches (other apps share this web address). Everything is served from the tablet's saved copy first, so the app opens with no connection.
    When online, each file is quietly re-downloaded in the background; the new copy is used the next time the app opens. */
-const CACHE = 'jla-v1-10';
-const FILES = ['./', 'index.html', 'style.css', 'art.js', 'games.js', 'app.js', 'lessons.json', 'stories.json', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png'];
+const CACHE = 'jla-v1-12';
+const FILES = ['./', 'index.html', 'style.css', 'art.js', 'games.js', 'pages.js', 'app.js', 'lessons.json', 'stories.json', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(FILES)).then(() => self.skipWaiting()));

@@ -10,7 +10,7 @@
   const pick = (a) => a[Math.floor(Math.random() * a.length)];
   const NUMW = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen', 'twenty'];
   const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
-  const plural = (t) => ({ leaf: 'leaves', scarecrow: 'scarecrows', bus: 'buses', fish: 'fish', dish: 'dishes' }[t] || t + 's');
+  const plural = (t) => ({ leaf: 'leaves', scarecrow: 'scarecrows', hero: 'superheroes', firetruck: 'fire trucks', dumptruck: 'dump trucks', cone: 'cones', bus: 'buses', fish: 'fish', dish: 'dishes' }[t] || t + 's');
 
   /* ---------------- Letter tracing ---------------- */
   // Letters live in a 100 x 115 box: top 10, midline 40, baseline 80, descender 105.
@@ -31,17 +31,40 @@
     t: [{ p: line(50, 18, 50, 80) }, { p: line(36, 40, 64, 40), rev: true }],
     L: [{ p: cat(line(34, 10, 34, 80), line(34, 80, 74, 80)) }],
     T: [{ p: line(50, 10, 50, 80) }, { p: line(24, 10, 76, 10), rev: true }],
-    I: [{ p: line(50, 10, 50, 80) }],
+    I: [{ p: line(50, 10, 50, 80) }, { p: line(34, 10, 66, 10), rev: true }, { p: line(34, 80, 66, 80), rev: true }],
     O: [{ p: arc(50, 45, 32, -90, -450) }],
     C: [{ p: arc(52, 45, 32, -40, -320) }],
     U: [{ p: cat(line(30, 10, 30, 58), arc(50, 58, 20, 180, 0), line(70, 58, 70, 10)) }],
     H: [{ p: line(28, 10, 28, 80) }, { p: line(72, 10, 72, 80) }, { p: line(28, 45, 72, 45), rev: true }],
     E: [{ p: line(32, 10, 32, 80) }, { p: line(32, 10, 72, 10), rev: true }, { p: line(32, 45, 64, 45), rev: true }, { p: line(32, 80, 72, 80), rev: true }],
     F: [{ p: line(32, 10, 32, 80) }, { p: line(32, 10, 72, 10), rev: true }, { p: line(32, 45, 64, 45), rev: true }],
+    A: [{ p: line(50, 10, 24, 80) }, { p: line(50, 10, 76, 80) }, { p: line(34, 54, 66, 54), rev: true }],
+    B: [{ p: line(30, 10, 30, 80) }, { p: cat(line(30, 10, 52, 10), arc(52, 27.5, 17.5, -90, 90), line(52, 45, 30, 45)) }, { p: cat(line(30, 45, 55, 45), arc(55, 62.5, 17.5, -90, 90), line(55, 80, 30, 80)) }],
+    D: [{ p: line(30, 10, 30, 80) }, { p: cat(line(30, 10, 42, 10), arc(42, 45, 35, -90, 90), line(42, 80, 30, 80)) }],
+    G: [{ p: cat(arc(52, 45, 32, -40, -360), line(84, 45, 60, 45)) }],
+    K: [{ p: line(30, 10, 30, 80) }, { p: line(72, 10, 30, 50) }, { p: line(44, 37, 72, 80) }],
+    M: [{ p: line(22, 80, 22, 10) }, { p: cat(line(22, 10, 50, 52), line(50, 52, 78, 10)) }, { p: line(78, 10, 78, 80) }],
+    N: [{ p: line(28, 80, 28, 10) }, { p: line(28, 10, 72, 80) }, { p: line(72, 80, 72, 10) }],
+    P: [{ p: line(30, 10, 30, 80) }, { p: cat(line(30, 10, 52, 10), arc(52, 27.5, 17.5, -90, 90), line(52, 45, 30, 45)) }],
+    Q: [{ p: arc(50, 45, 32, -90, -450) }, { p: line(58, 58, 80, 82) }],
+    R: [{ p: line(30, 10, 30, 80) }, { p: cat(line(30, 10, 52, 10), arc(52, 27.5, 17.5, -90, 90), line(52, 45, 30, 45)) }, { p: line(46, 45, 72, 80) }],
+    S: [{ p: cat(arc(50, 27.5, 17.5, -20, -270), arc(50, 62.5, 17.5, -90, 160)) }],
+    V: [{ p: cat(line(24, 10, 50, 80), line(50, 80, 76, 10)) }],
+    W: [{ p: cat(line(16, 10, 32, 80), line(32, 80, 50, 32), line(50, 32, 68, 80), line(68, 80, 84, 10)) }],
+    X: [{ p: line(26, 10, 74, 80) }, { p: line(74, 10, 26, 80) }],
+    Y: [{ p: line(26, 10, 50, 45) }, { p: line(74, 10, 50, 45) }, { p: line(50, 45, 50, 80) }],
+    Z: [{ p: cat(line(26, 10, 74, 10), line(74, 10, 26, 80), line(26, 80, 74, 80)) }],
     // numbers (same box)
     8: [{ p: cat(arc(50, 27, 17, -20, -270), arc(50, 62, 18, -90, 270), arc(50, 27, 17, 90, -20)) }],
     9: [{ p: cat(arc(50, 30, 18, 0, -360), line(68, 30, 66, 80)) }],
     1: [{ p: cat(line(38, 22, 52, 10), line(52, 10, 52, 80)) }],
+    2: [{ p: cat(arc(50, 30, 20, -170, 20), line(68.8, 36.8, 30, 80), line(30, 80, 72, 80)) }],
+    3: [{ p: cat(arc(48, 27, 17, -160, 90), arc(48, 61, 19, -90, 160)) }],
+    4: [{ p: cat(line(58, 10, 26, 58), line(26, 58, 76, 58)) }, { p: line(60, 30, 60, 80) }],
+    5: [{ p: cat(line(36, 10, 34, 40), arc(48, 58, 22, -125, 150)) }, { p: line(36, 10, 70, 10), rev: true }],
+    6: [{ p: cat(line(64, 10, 36, 50), arc(50, 62, 18, 180, 540)) }],
+    7: [{ p: cat(line(26, 10, 74, 10), line(74, 10, 42, 80)) }],
+
     0: [{ p: arc(50, 45, 24, -90, -450) }]
   };
   const pathD = (pts) => pts.map((q, i) => (i ? 'L' : 'M') + q[0].toFixed(1) + ' ' + q[1].toFixed(1)).join(' ');
@@ -72,7 +95,8 @@
       ctx.root.appendChild(wrap);
       const main = wrap.querySelector('.main'), side = wrap.querySelector('.side');
       const row = $('<div class="name-row"></div>');
-      name.forEach((ch, i) => row.appendChild($('<div class="tile ' + (i === k ? 'on' : i < k ? 'did' : '') + '">' + ch + '</div>')));
+      const from = name.length > 9 ? Math.max(0, Math.min(k - 4, name.length - 9)) : 0;
+      name.slice(from, from + 9).forEach((ch, j) => { const i = from + j; row.appendChild($('<div class="tile ' + (i === k ? 'on' : i < k ? 'did' : '') + '">' + ch + '</div>')); });
       side.appendChild(row);
       side.appendChild($('<div class="card big-letter"><div class="glyph">' + L + '</div><div>' + c.caption + '</div></div>'));
       const again = $('<button class="kid-btn plain wide" aria-label="Start over">' + ART.icon.restart + '</button>');
@@ -132,6 +156,10 @@
     }
   });
   const trace = makeTrace('trace', 'letters', 'Trace a letter', chooseLetter);
+  const ABC = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split(''), NUMS = '0123456789'.split('');
+  const inOrder = (list, label) => (ctx) => { const k = (ctx.prog.i || 0) % list.length, L = list[k]; return { list, k, L, caption: label(L), done: () => { ctx.prog.i = k + 1; } }; };
+  const abc = makeTrace('abc', 'letters', 'ABC trace', inOrder(ABC, (L) => 'Big ' + L));
+  const nums = makeTrace('nums', 'numbers', '123 trace', inOrder(NUMS, (L) => 'The number ' + L));
   const traceNum = makeTrace('traceNum', 'numbers', 'Trace a number', chooseNumber);
 
   /* ---------------- How many? ---------------- */
@@ -217,6 +245,32 @@
       { el: 'path', a: { d: 'M228 96 C258 52 312 56 330 76 C300 112 254 116 228 96 Z' }, want: '2', lx: 286, ly: 92, fs: 26 },
       { el: 'path', a: { d: 'M200 120 C150 90 70 110 70 200 C70 300 140 360 200 340 C260 360 330 300 330 200 C330 110 250 90 200 120 Z' }, want: '1', lx: 200, ly: 240, fs: 40 },
       { el: 'ellipse', a: { cx: 140, cy: 180, rx: 18, ry: 30 }, want: '4', lx: 140, ly: 190, fs: 22 }] },
+    firetruck: { name: 'fire truck', keys: [['1', '#C9473A', 'red'], ['2', '#2B3B39', 'black'], ['3', '#EBC34F', 'yellow'], ['4', '#4A6FA5', 'blue']], regions: [
+      { el: 'rect', a: { x: 60, y: 172, width: 222, height: 100, rx: 6 }, want: '1', lx: 140, ly: 262, fs: 26 },
+      { el: 'path', a: { d: 'M280 272 V186 C280 176 288 168 298 168 H326 L352 212 V272 Z' }, want: '1', lx: 318, ly: 258, fs: 22 },
+      { el: 'path', a: { d: 'M292 180 H321 L340 210 H292 Z' }, want: '4', lx: 312, ly: 204, fs: 16 },
+      { el: 'rect', a: { x: 172, y: 192, width: 86, height: 52, rx: 6 }, want: '4', lx: 215, ly: 226, fs: 22 },
+      { el: 'rect', a: { x: 70, y: 148, width: 200, height: 20, rx: 6 }, want: '3', lx: 170, ly: 164, fs: 16 },
+      { el: 'rect', a: { x: 296, y: 148, width: 28, height: 16, rx: 5 }, want: '3', lx: 310, ly: 161, fs: 13 },
+      { el: 'circle', a: { cx: 110, cy: 220, r: 24 }, want: '3', lx: 110, ly: 228, fs: 20 },
+      { el: 'circle', a: { cx: 105, cy: 282, r: 28 }, want: '2', lx: 105, ly: 290, fs: 20 },
+      { el: 'circle', a: { cx: 180, cy: 282, r: 28 }, want: '2', lx: 180, ly: 290, fs: 20 },
+      { el: 'circle', a: { cx: 318, cy: 282, r: 28 }, want: '2', lx: 318, ly: 290, fs: 20 }],
+      decor: '<circle cx="105" cy="282" r="9" fill="#9AABA7"/><circle cx="180" cy="282" r="9" fill="#9AABA7"/><circle cx="318" cy="282" r="9" fill="#9AABA7"/><path d="M80 148 V168 M100 148 V168 M120 148 V168 M140 148 V168 M160 148 V168 M180 148 V168 M200 148 V168 M220 148 V168 M240 148 V168" stroke="#5E6E6B" stroke-width="2"/><path d="M40 312 H360" stroke="#5E6E6B" stroke-width="3"/>' },
+    hero: { name: 'superhero', letters: true, keys: [['H', BROWN, 'brown'], ['L', YELLOW, 'yellow'], ['E', RED, 'red'], ['F', GREEN, 'green']], under: '<circle cx="200" cy="100" r="34" fill="#F3D7BE" stroke="#5E6E6B" stroke-width="3"/>', regions: [
+      { el: 'path', a: { d: 'M165 150 L110 340 H290 L235 150 Z' }, want: 'E', lx: 128, ly: 320, fs: 20 },
+      { el: 'rect', a: { x: 140, y: 150, width: 28, height: 90, rx: 12 }, want: 'F', lx: 154, ly: 205, fs: 16 },
+      { el: 'rect', a: { x: 232, y: 150, width: 28, height: 90, rx: 12 }, want: 'F', lx: 246, ly: 205, fs: 16 },
+      { el: 'rect', a: { x: 165, y: 145, width: 70, height: 110, rx: 18 }, want: 'F', lx: 222, ly: 232, fs: 14 },
+      { el: 'rect', a: { x: 168, y: 250, width: 28, height: 66, rx: 8 }, want: 'F', lx: 182, ly: 290, fs: 16 },
+      { el: 'rect', a: { x: 204, y: 250, width: 28, height: 66, rx: 8 }, want: 'F', lx: 218, ly: 290, fs: 16 },
+      { el: 'rect', a: { x: 160, y: 312, width: 40, height: 24, rx: 8 }, want: 'H', lx: 180, ly: 330, fs: 15 },
+      { el: 'rect', a: { x: 200, y: 312, width: 40, height: 24, rx: 8 }, want: 'H', lx: 220, ly: 330, fs: 15 },
+      { el: 'rect', a: { x: 165, y: 236, width: 70, height: 14, rx: 5 }, want: 'L', lx: 200, ly: 248, fs: 12 },
+      { el: 'path', a: { d: 'M200 170 L206 184 L221 185 L209 195 L213 210 L200 201 L187 210 L191 195 L179 185 L194 184 Z' }, want: 'L', lx: 200, ly: 197, fs: 10 },
+      { el: 'path', a: { d: 'M166 94 C170 58 230 58 234 94 C216 80 184 80 166 94 Z' }, want: 'H', lx: 200, ly: 80, fs: 14 },
+      { el: 'path', a: { d: 'M167 102 C185 90 215 90 233 102 C228 118 172 118 167 102 Z' }, want: 'E', lx: 214, ly: 110, fs: 11 }],
+      decor: '<circle cx="187" cy="103" r="4" fill="#1F3B39"/><circle cx="213" cy="103" r="4" fill="#1F3B39"/><path d="M188 120 C195 126 205 126 212 120" fill="none" stroke="#1F3B39" stroke-width="3" stroke-linecap="round"/>' },
     // Color by letter, like his class's turkey page: H brown, T orange, L yellow, E red, F green
     turkey: { name: 'turkey', letters: true, keys: [['H', BROWN, 'brown'], ['T', ORANGE, 'orange'], ['L', YELLOW, 'yellow'], ['E', RED, 'red'], ['F', GREEN, 'green']], regions: [
       feather(-165, 'F'), feather(-130, 'L'), feather(-90, 'F'), feather(-50, 'L'), feather(-15, 'F'),
@@ -246,6 +300,7 @@
       main.appendChild(svg);
       let sel = pic.keys[0][0], done = false;
       const filled = pic.regions.map(() => '');
+      if (pic.under) { const u = document.createElementNS(NS, 'g'); u.setAttribute('pointer-events', 'none'); u.innerHTML = pic.under; svg.appendChild(u); }
       pic.regions.forEach((r, i) => {
         const e = document.createElementNS(NS, r.el);
         Object.entries(r.a).forEach(([k, v]) => e.setAttribute(k, v));
@@ -278,7 +333,8 @@
     id, area, title,
     render(ctx) {
       const list = (ctx.lessons[listKey] && ctx.lessons[listKey].length) ? ctx.lessons[listKey].map(String) : fallback;
-      const T = list[(ctx.prog.i || 0) % list.length]; ctx.prog.i = (ctx.prog.i || 0) + 1; ctx.saveProg();
+      // mostly this week's letters/numbers, sometimes any other one for variety
+      const T = Math.random() < 0.35 ? pool[Math.floor(Math.random() * pool.length)] : list[(ctx.prog.i || 0) % list.length]; ctx.prog.i = (ctx.prog.i || 0) + 1; ctx.saveProg();
       const others = pool.split('').filter((c) => c !== T);
       const nT = 6, cells = shuffle(Array(nT).fill(T).concat(shuffle(others).slice(0, 18 - nT)));
       ctx.root.innerHTML = '';
@@ -507,6 +563,36 @@
         '<rect x="-4" y="418" width="808" height="40" fill="#D5DED9"' + OL + '/><rect x="-4" y="456" width="808" height="148" fill="#7D8B88"' + OL + '/>' +
         many(8, (i) => '<rect x="' + (20 + i * 100) + '" y="522" width="56" height="12" rx="4" fill="#FFFFFF"/>'),
       spots: [[95, 260, '#C9473A'], [115, 395, '#C9473A'], [290, 225, '#6B8DBF'], [240, 380, '#6B8DBF'], [475, 115, '#EBC34F'], [475, 390, '#EBC34F'], [660, 330, '#9CC9C0'], [730, 380, '#9CC9C0'], [150, 575, '#7D8B88'], [640, 580, '#7D8B88'], [560, 50, '#CFE4EE'], [240, 70, '#CFE4EE'], [400, 437, '#D5DED9']]
+    },
+    construction: {
+      art: '<rect width="800" height="600" fill="#DDEBF0"/><circle cx="720" cy="80" r="44" fill="#F2D27E"' + OL + '/>' +
+        '<rect x="-4" y="400" width="808" height="204" fill="#C9A57A"' + OL + '/>' +
+        '<rect x="600" y="80" width="40" height="330" fill="#EBC34F"' + OL + '/>' + many(8, (i) => '<path d="M600 ' + (90 + i * 40) + ' L640 ' + (130 + i * 40) + '" stroke="#2B3B39" stroke-width="3"/>') +
+        '<rect x="360" y="70" width="420" height="30" fill="#EBC34F"' + OL + '/><path d="M420 100 V200" stroke="#2B3B39" stroke-width="4"/><path d="M405 200 H435 V222 C435 240 405 240 405 222" fill="none" stroke="#2B3B39" stroke-width="5"/>' +
+        '<rect x="400" y="230" width="180" height="180" fill="#9AABA7"' + OL + '/><path d="M400 290 H580 M400 350 H580 M460 230 V410 M520 230 V410" stroke="#2B3B39" stroke-width="3"/>' +
+        '<ellipse cx="180" cy="420" rx="150" ry="80" fill="#B07A45"' + OL + '/>' +
+        '<path d="M60 560 V490 H240 V430 H300 L340 490 V560 Z" fill="#E08A3C"' + OL + '/><path d="M250 440 H292 L322 488 H250 Z" fill="#DCE6F2"' + OL + '/>' +
+        '<circle cx="110" cy="565" r="32" fill="#2B3B39"/><circle cx="290" cy="565" r="32" fill="#2B3B39"/>' +
+        '<path d="M650 560 L675 470 L700 560 Z" fill="#E08A3C"' + OL + '/><path d="M720 560 L745 470 L770 560 Z" fill="#E08A3C"' + OL + '/>',
+      spots: [[150, 410, '#B07A45'], [240, 430, '#B07A45'], [620, 230, '#EBC34F'], [520, 85, '#EBC34F'], [450, 260, '#9AABA7'], [540, 380, '#9AABA7'], [150, 520, '#E08A3C'], [440, 520, '#C9A57A'], [560, 470, '#C9A57A'], [300, 120, '#DDEBF0'], [740, 230, '#DDEBF0'], [720, 80, '#F2D27E']]
+    },
+    airport: {
+      art: '<rect width="800" height="600" fill="#CFE4EE"/>' +
+        '<path d="M130 112 C100 112 100 76 136 76 C140 46 190 42 202 70 C220 52 265 62 258 92 C285 94 282 124 256 124 H140 Z" fill="#FFFFFF"' + OL + '/>' +
+        '<rect x="-4" y="420" width="808" height="184" fill="#A9C77A"' + OL + '/><rect x="-4" y="470" width="808" height="92" fill="#7D8B88"' + OL + '/>' + many(7, (i) => '<rect x="' + (30 + i * 115) + '" y="510" width="60" height="10" rx="3" fill="#FFFFFF"/>') +
+        '<rect x="40" y="250" width="320" height="180" fill="#DCE6F2"' + OL + '/><rect x="40" y="275" width="320" height="50" fill="#9FC3E6"' + OL + '/><rect x="170" y="350" width="60" height="80" fill="#FFFFFF"' + OL + '/>' +
+        '<rect x="560" y="160" width="60" height="270" fill="#D5DED9"' + OL + '/><rect x="525" y="110" width="130" height="60" rx="10" fill="#9FC3E6"' + OL + '/>' +
+        '<path d="M380 430 C380 405 400 395 430 395 H700 C740 395 760 410 760 425 C760 440 740 450 700 450 H430 C400 450 380 445 380 430 Z" fill="#FFFFFF"' + OL + '/>' +
+        '<path d="M400 400 L370 330 H410 L450 398 Z" fill="#C9473A"' + OL + '/><path d="M540 425 L600 360 H640 L610 425 Z" fill="#9AABA7"' + OL + '/>' + many(6, (i) => '<circle cx="' + (480 + i * 40) + '" cy="418" r="7" fill="#9FC3E6"/>'),
+      spots: [[110, 380, '#DCE6F2'], [300, 390, '#DCE6F2'], [250, 300, '#9FC3E6'], [590, 300, '#D5DED9'], [590, 140, '#9FC3E6'], [120, 515, '#7D8B88'], [700, 520, '#7D8B88'], [400, 160, '#CFE4EE'], [730, 250, '#CFE4EE'], [190, 92, '#FFFFFF'], [660, 425, '#FFFFFF'], [420, 590, '#A9C77A']]
+    },
+    space: {
+      art: '<rect width="800" height="600" fill="#23304A"/>' + many(40, (i) => '<circle cx="' + ((i * 197) % 800) + '" cy="' + ((i * 89) % 400) + '" r="' + (2 + (i % 3)) + '" fill="#FFF6D8"/>') +
+        '<ellipse cx="620" cy="170" rx="190" ry="40" fill="none" stroke="#F2D27E" stroke-width="10" transform="rotate(-15 620 170)"/><circle cx="620" cy="170" r="110" fill="#E08A3C"' + OL + '/><path d="M520 140 C580 120 660 130 720 160 M515 200 C580 190 670 200 725 215" stroke="#C46A24" stroke-width="10" fill="none"/>' +
+        '<circle cx="150" cy="140" r="64" fill="#7E9A4F"' + OL + '/>' +
+        '<path d="M-4 450 C150 410 300 440 420 425 C560 405 680 440 804 420 V604 H-4 Z" fill="#B9C0C8"' + OL + '/><ellipse cx="300" cy="510" rx="70" ry="22" fill="#9AA3AD"' + OL + '/><ellipse cx="620" cy="540" rx="50" ry="16" fill="#9AA3AD"' + OL + '/>' +
+        '<path d="M470 450 V330 C470 290 500 260 520 245 C540 260 570 290 570 330 V450 Z" fill="#DCE6F2"' + OL + '/><circle cx="520" cy="330" r="22" fill="#9FC3E6"' + OL + '/><path d="M470 400 L430 455 H470 Z M570 400 L610 455 H570 Z" fill="#C9473A"' + OL + '/>',
+      spots: [[590, 150, '#E08A3C'], [680, 210, '#E08A3C'], [150, 140, '#7E9A4F'], [120, 520, '#B9C0C8'], [420, 560, '#B9C0C8'], [720, 500, '#B9C0C8'], [300, 510, '#9AA3AD'], [520, 400, '#DCE6F2']]
     }
   };
   const objSvg = (k, A, B, cls) => '<svg viewBox="0 0 100 100" class="' + (cls || '') + '" aria-hidden="true"><g' + OL + '>' + OBJ[k][1].replace(/\{A\}/g, A).replace(/\{B\}/g, B) + '</g></svg>';
@@ -565,9 +651,12 @@
     { bg: 'field', items: [['sun', 8, 6, 22], ['cloud', 58, 4, 32], ['house', 104, 28, 46], ['tree', 6, 24, 50], ['hen', 56, 60, 26], ['pig', 84, 70, 28], ['flower', 132, 74, 22], ['dog', 28, 74, 26]], free: [[60, 34, 16], [136, 8, 18], [4, 86, 18]] },
     { bg: 'field', items: [['sun', 132, 4, 22], ['cloud', 16, 4, 32], ['house', 6, 30, 42], ['tree', 52, 24, 44], ['bus', 86, 58, 44], ['car', 44, 72, 32], ['flower', 136, 84, 18]], free: [[100, 8, 18], [70, 6, 16], [8, 84, 18]] },
     { bg: 'inside', items: [['bed', 66, 46, 64], ['book', 10, 70, 24], ['ball', 38, 84, 18], ['cat', 110, 34, 24], ['moon', 18, 6, 22], ['star', 46, 8, 14], ['sock', 132, 86, 18], ['cup', 98, 18, 16]], free: [[70, 12, 16], [10, 44, 18], [140, 10, 16]] },
-    { bg: 'field', items: [['flower', 6, 70, 26], ['flower', 34, 74, 22], ['flower', 140, 72, 22], ['bee', 58, 18, 22], ['turtle', 66, 72, 30], ['rabbit', 104, 64, 32], ['tree', 116, 8, 42], ['sun', 8, 6, 22]], free: [[36, 24, 18], [86, 30, 16], [20, 46, 16]] }
+    { bg: 'field', items: [['flower', 6, 70, 26], ['flower', 34, 74, 22], ['flower', 140, 72, 22], ['bee', 58, 18, 22], ['turtle', 66, 72, 30], ['rabbit', 104, 64, 32], ['tree', 116, 8, 42], ['sun', 8, 6, 22]], free: [[36, 24, 18], [86, 30, 16], [20, 46, 16]] },
+    { bg: 'field', items: [['sun', 6, 4, 22], ['cloud', 60, 4, 30], ['house', 104, 24, 44], ['dumptruck', 4, 52, 50], ['cone', 60, 68, 18], ['cone', 82, 70, 16], ['flower', 140, 84, 16]], free: [[36, 12, 16], [96, 6, 14], [146, 8, 12]] },
+    { bg: 'field', items: [['sun', 130, 4, 22], ['cloud', 10, 6, 30], ['cloud', 72, 12, 26], ['plane', 36, 40, 58], ['tree', 4, 56, 34], ['house', 118, 46, 38], ['car', 70, 76, 28]], free: [[104, 32, 14], [46, 86, 14], [142, 90, 12]] },
+    { bg: 'field', items: [['hero', 66, 28, 52], ['house', 6, 36, 46], ['tree', 122, 34, 40], ['star', 20, 6, 14], ['star', 140, 8, 12], ['cloud', 84, 6, 28], ['car', 108, 78, 28], ['ball', 52, 86, 16]], free: [[58, 6, 14], [6, 90, 14], [94, 90, 12]] }
   ];
-  const DIFF_EXTRA = ['star', 'apple', 'ball', 'flower', 'bee', 'leaf', 'acorn', 'heart'].filter((k) => ART.has(k));
+  const DIFF_EXTRA = ['star', 'apple', 'ball', 'flower', 'bee', 'leaf', 'acorn', 'cone', 'rocket', 'sun'].filter((k) => ART.has(k));
   const diff = {
     id: 'diff', area: 'puzzles', title: 'Look and look again',
     render(ctx) {
@@ -622,10 +711,10 @@
   };
 
   window.TRACE_SHAPES = LETTERS; // used by tests
-  window.GAMES = { trace, spy, traceNum, count, basket, spyNum, color: colorPic, hidden, diff, maze, rhyme, feelings };
+  window.GAMES = { trace, abc, spy, traceNum, nums, count, basket, spyNum, color: colorPic, hidden, diff, maze, rhyme, feelings };
   window.AREAS = [
-    { id: 'letters', name: 'Letters', games: ['trace', 'spy'], tint: '#DCEBE8' },
-    { id: 'numbers', name: 'Numbers', games: ['count', 'traceNum', 'spyNum'], tint: '#FBEBD0' },
+    { id: 'letters', name: 'Letters', games: ['trace', 'abc', 'spy'], tint: '#DCEBE8' },
+    { id: 'numbers', name: 'Numbers', games: ['count', 'traceNum', 'nums', 'spyNum'], tint: '#FBEBD0' },
     { id: 'make', name: 'Art', games: ['color'], tint: '#E6E3F0' },
     { id: 'puzzles', name: 'Puzzles', games: ['hidden', 'diff'], tint: '#E1ECEA' }
     // Hidden for now (code kept): Fill the basket (basket), Stories ({ id: 'stories', name: 'Stories', games: [], tint: '#DCE6F2' }), Mazes (maze), Rhymes and Feelings (games kept): { id: 'words', ... ['rhyme'] }, { id: 'feelings', ... ['feelings'] }
