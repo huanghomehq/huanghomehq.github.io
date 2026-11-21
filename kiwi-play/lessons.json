@@ -1,0 +1,115 @@
+{
+  "version": "2026-11-21",
+  "weekOf": "Mon Nov 16, 2026",
+  "focus": [
+    "Letters of the week: U and H, plus review T, L, E, F",
+    "Big (capital) letters, starting on the dot",
+    "Name practice (uses the name set on this tablet)",
+    "Numbers 8 and 9: trace them, find them, count to 10",
+    "\"I see 2 red scarecrows\" style counting sentences"
+  ],
+  "traceLetters": [
+    "U",
+    "H",
+    "T",
+    "L",
+    "E",
+    "F"
+  ],
+  "traceNumbers": [
+    "8",
+    "9"
+  ],
+  "spyLetters": [
+    "U",
+    "H"
+  ],
+  "spyNumbers": [
+    "8",
+    "9"
+  ],
+  "countThings": [
+    "scarecrow",
+    "apple",
+    "acorn",
+    "leaf",
+    "pumpkin"
+  ],
+  "colorPictures": [
+    "turkey",
+    "pumpkin",
+    "apple"
+  ],
+  "rhymes": [
+    {
+      "word": "cat",
+      "answer": "hat",
+      "others": [
+        "sun",
+        "cup"
+      ]
+    },
+    {
+      "word": "car",
+      "answer": "star",
+      "others": [
+        "ball",
+        "tree"
+      ]
+    },
+    {
+      "word": "bee",
+      "answer": "tree",
+      "others": [
+        "cup",
+        "sock"
+      ]
+    },
+    {
+      "word": "moon",
+      "answer": "spoon",
+      "others": [
+        "car",
+        "hat"
+      ]
+    },
+    {
+      "word": "fish",
+      "answer": "dish",
+      "others": [
+        "sun",
+        "ball"
+      ]
+    }
+  ],
+  "feelings": [
+    {
+      "who": "Sam",
+      "scene": "icecream",
+      "text": "Oh no! Sam’s ice cream fell down.",
+      "answer": "sad",
+      "help": "A hug, or sharing a snack, could help."
+    },
+    {
+      "who": "Mia",
+      "scene": "cake",
+      "text": "It’s Mia’s birthday cake!",
+      "answer": "happy",
+      "help": "Let’s sing to Mia!"
+    },
+    {
+      "who": "Leo",
+      "scene": "tower",
+      "text": "Someone knocked over Leo’s tower.",
+      "answer": "mad",
+      "help": "Leo can take a big breath and use his words."
+    },
+    {
+      "who": "Ava",
+      "scene": "storm",
+      "text": "Boom! Loud thunder outside.",
+      "answer": "scared",
+      "help": "Holding a grown-up’s hand could help."
+    }
+  ]
+}

@@ -1,0 +1,785 @@
+{
+ "version": "2026-11-18",
+ "note": "Original stories and retold public-domain folk tales. Scene box is 160 x 90; items are [picture, x, y, size]. {name} becomes the child's name. \"audiobooks\" lists audio files shipped with the app: {id, title, src: \"audio/<file>.mp3\", cover: \"audio/<file>.jpg\" or coverPic: \"<picture name>\", tint}.",
+ "stories": [
+  {
+   "id": "red-hen",
+   "title": "The Little Red Hen",
+   "cover": "hen",
+   "tint": "#F6E1D8",
+   "pages": [
+    {
+     "bg": "field",
+     "items": [
+      [
+       "hen",
+       30,
+       26,
+       46
+      ],
+      [
+       "seeds",
+       82,
+       40,
+       30
+      ]
+     ],
+     "text": "One day, the Little Red Hen found some seeds."
+    },
+    {
+     "bg": "field",
+     "items": [
+      [
+       "hen",
+       8,
+       30,
+       38
+      ],
+      [
+       "dog",
+       50,
+       34,
+       34
+      ],
+      [
+       "cat",
+       84,
+       36,
+       30
+      ],
+      [
+       "pig",
+       116,
+       34,
+       36
+      ]
+     ],
+     "text": "\"Who will help me plant the seeds?\" \"Not I,\" said the dog. \"Not I,\" said the cat. \"Not I,\" said the pig."
+    },
+    {
+     "bg": "field",
+     "items": [
+      [
+       "hen",
+       26,
+       28,
+       44
+      ],
+      [
+       "seeds",
+       84,
+       44,
+       26
+      ]
+     ],
+     "text": "\"Then I will do it myself,\" said the Little Red Hen. And she did."
+    },
+    {
+     "bg": "field",
+     "items": [
+      [
+       "wheat",
+       40,
+       10,
+       50
+      ],
+      [
+       "wheat",
+       64,
+       8,
+       52
+      ],
+      [
+       "wheat",
+       88,
+       10,
+       50
+      ],
+      [
+       "hen",
+       6,
+       36,
+       34
+      ]
+     ],
+     "text": "The seeds grew into tall, yellow wheat."
+    },
+    {
+     "bg": "field",
+     "items": [
+      [
+       "hen",
+       8,
+       30,
+       38
+      ],
+      [
+       "dog",
+       50,
+       34,
+       34
+      ],
+      [
+       "cat",
+       84,
+       36,
+       30
+      ],
+      [
+       "pig",
+       116,
+       34,
+       36
+      ]
+     ],
+     "text": "\"Who will help me cut the wheat?\" \"Not I! Not I! Not I!\""
+    },
+    {
+     "bg": "inside",
+     "items": [
+      [
+       "hen",
+       22,
+       30,
+       40
+      ],
+      [
+       "bread",
+       86,
+       34,
+       40
+      ]
+     ],
+     "text": "So the Little Red Hen cut the wheat and baked some bread. Mmm, it smelled so good!"
+    },
+    {
+     "bg": "inside",
+     "items": [
+      [
+       "bread",
+       62,
+       10,
+       34
+      ],
+      [
+       "dog",
+       14,
+       44,
+       32
+      ],
+      [
+       "cat",
+       64,
+       48,
+       28
+      ],
+      [
+       "pig",
+       108,
+       44,
+       36
+      ]
+     ],
+     "text": "\"Who will help me eat the bread?\" \"I will!\" said the dog, the cat, and the pig."
+    },
+    {
+     "bg": "inside",
+     "items": [
+      [
+       "hen",
+       30,
+       28,
+       42
+      ],
+      [
+       "chick",
+       80,
+       46,
+       22
+      ],
+      [
+       "chick",
+       102,
+       48,
+       20
+      ],
+      [
+       "bread",
+       120,
+       46,
+       26
+      ]
+     ],
+     "text": "\"No,\" said the Little Red Hen. \"I did the work, so my chicks and I will eat it.\""
+    },
+    {
+     "bg": "field",
+     "items": [
+      [
+       "hen",
+       14,
+       34,
+       34
+      ],
+      [
+       "dog",
+       50,
+       36,
+       30
+      ],
+      [
+       "cat",
+       82,
+       38,
+       26
+      ],
+      [
+       "pig",
+       110,
+       36,
+       32
+      ]
+     ],
+     "text": "Next time, everyone wanted to help! The End."
+    }
+   ]
+  },
+  {
+   "id": "tortoise-hare",
+   "title": "The Tortoise and the Hare",
+   "cover": "turtle",
+   "tint": "#E4ECD9",
+   "pages": [
+    {
+     "bg": "field",
+     "items": [
+      [
+       "rabbit",
+       24,
+       30,
+       44
+      ],
+      [
+       "turtle",
+       92,
+       40,
+       36
+      ]
+     ],
+     "text": "Hare was very fast. Tortoise was very slow."
+    },
+    {
+     "bg": "field",
+     "items": [
+      [
+       "rabbit",
+       24,
+       30,
+       44
+      ],
+      [
+       "turtle",
+       92,
+       40,
+       36
+      ]
+     ],
+     "text": "\"Let's have a race!\" said Tortoise. Hare laughed. \"I will win!\""
+    },
+    {
+     "bg": "field",
+     "items": [
+      [
+       "rabbit",
+       98,
+       32,
+       40
+      ],
+      [
+       "turtle",
+       10,
+       44,
+       30
+      ],
+      [
+       "tree",
+       132,
+       18,
+       26
+      ]
+     ],
+     "text": "Ready, set, go! Zoom! Hare ran far ahead."
+    },
+    {
+     "bg": "field",
+     "items": [
+      [
+       "tree",
+       50,
+       6,
+       60
+      ],
+      [
+       "rabbit",
+       82,
+       46,
+       30
+      ],
+      [
+       "sun",
+       6,
+       4,
+       22
+      ]
+     ],
+     "text": "Hare was so far ahead, he stopped for a nap under a tree. Zzzz."
+    },
+    {
+     "bg": "field",
+     "items": [
+      [
+       "turtle",
+       40,
+       42,
+       32
+      ],
+      [
+       "flower",
+       100,
+       44,
+       26
+      ],
+      [
+       "flower",
+       120,
+       46,
+       22
+      ]
+     ],
+     "text": "Tortoise kept going. Step, step, step. Slow and steady."
+    },
+    {
+     "bg": "field",
+     "items": [
+      [
+       "tree",
+       6,
+       6,
+       60
+      ],
+      [
+       "rabbit",
+       30,
+       46,
+       28
+      ],
+      [
+       "turtle",
+       110,
+       42,
+       34
+      ]
+     ],
+     "text": "Tortoise walked past the sleeping Hare, all the way to the finish!"
+    },
+    {
+     "bg": "field",
+     "items": [
+      [
+       "turtle",
+       64,
+       34,
+       44
+      ],
+      [
+       "star",
+       22,
+       10,
+       20
+      ],
+      [
+       "star",
+       118,
+       12,
+       18
+      ]
+     ],
+     "text": "Hare woke up, but it was too late. Tortoise won! Slow and steady wins the race. The End."
+    }
+   ]
+  },
+  {
+   "id": "counting-apples",
+   "title": "{name} Counts Apples",
+   "cover": "apple",
+   "tint": "#FBEBD0",
+   "pages": [
+    {
+     "bg": "field",
+     "items": [
+      [
+       "kid",
+       20,
+       20,
+       54
+      ],
+      [
+       "tree",
+       84,
+       4,
+       66
+      ]
+     ],
+     "text": "{name} went to the apple tree with a big basket."
+    },
+    {
+     "bg": "field",
+     "count": [
+      "apple",
+      1
+     ],
+     "text": "{name} picked one red apple. One!"
+    },
+    {
+     "bg": "field",
+     "count": [
+      "apple",
+      2
+     ],
+     "text": "Then another one. One, two. Two apples!"
+    },
+    {
+     "bg": "field",
+     "count": [
+      "apple",
+      3
+     ],
+     "text": "One, two, three. Three apples!"
+    },
+    {
+     "bg": "field",
+     "count": [
+      "apple",
+      5
+     ],
+     "text": "One, two, three, four, five. Five apples!"
+    },
+    {
+     "bg": "field",
+     "count": [
+      "apple",
+      8
+     ],
+     "text": "One, two, three, four, five, six, seven, eight. Eight apples!"
+    },
+    {
+     "bg": "field",
+     "count": [
+      "apple",
+      10
+     ],
+     "text": "Let's count them all. One, two, three, four, five, six, seven, eight, nine, ten. Ten apples!"
+    },
+    {
+     "bg": "inside",
+     "items": [
+      [
+       "kid",
+       24,
+       22,
+       54
+      ],
+      [
+       "basket",
+       92,
+       34,
+       44
+      ]
+     ],
+     "text": "Ten apples are just enough for a yummy apple pie. The End."
+    }
+   ]
+  },
+  {
+   "id": "sam-scarecrow",
+   "title": "Sam the Scarecrow",
+   "cover": "scarecrow",
+   "tint": "#E6E3F0",
+   "pages": [
+    {
+     "bg": "field",
+     "items": [
+      [
+       "scarecrow",
+       52,
+       6,
+       62
+      ]
+     ],
+     "text": "I see one purple scarecrow. His name is Sam."
+    },
+    {
+     "bg": "field",
+     "items": [
+      [
+       "scarecrow",
+       52,
+       6,
+       62
+      ],
+      [
+       "pumpkin",
+       10,
+       50,
+       24
+      ],
+      [
+       "pumpkin",
+       126,
+       50,
+       24
+      ]
+     ],
+     "text": "Sam stands in the field all day, next to the orange pumpkins."
+    },
+    {
+     "bg": "field",
+     "items": [
+      [
+       "scarecrow",
+       30,
+       6,
+       62
+      ],
+      [
+       "bee",
+       106,
+       14,
+       28
+      ]
+     ],
+     "text": "Buzz, buzz! A yellow bee flies by. \"Hello, bee!\" says Sam."
+    },
+    {
+     "bg": "field",
+     "items": [
+      [
+       "scarecrow",
+       30,
+       6,
+       62
+      ],
+      [
+       "tree",
+       96,
+       4,
+       60
+      ],
+      [
+       "apple",
+       112,
+       56,
+       14
+      ],
+      [
+       "apple",
+       128,
+       60,
+       14
+      ]
+     ],
+     "text": "Plop! Plop! Two red apples fall from the tree."
+    },
+    {
+     "bg": "field",
+     "items": [
+      [
+       "scarecrow",
+       30,
+       6,
+       62
+      ],
+      [
+       "turkey",
+       100,
+       34,
+       40
+      ]
+     ],
+     "text": "Gobble, gobble! A turkey comes to say hello."
+    },
+    {
+     "bg": "night",
+     "items": [
+      [
+       "scarecrow",
+       52,
+       6,
+       62
+      ],
+      [
+       "moon",
+       12,
+       6,
+       26
+      ],
+      [
+       "star",
+       118,
+       8,
+       14
+      ],
+      [
+       "star",
+       136,
+       22,
+       10
+      ],
+      [
+       "star",
+       104,
+       28,
+       8
+      ]
+     ],
+     "text": "The sun goes down. The moon comes up. Sam is not lonely. He has so many friends! The End."
+    }
+   ]
+  },
+  {
+   "id": "bedtime",
+   "title": "Bedtime for {name}",
+   "cover": "moon",
+   "tint": "#DCE6F2",
+   "pages": [
+    {
+     "bg": "field",
+     "items": [
+      [
+       "sun",
+       60,
+       4,
+       34
+      ],
+      [
+       "house",
+       100,
+       24,
+       46
+      ],
+      [
+       "cloud",
+       10,
+       8,
+       34
+      ]
+     ],
+     "text": "The sun is going down. It is almost bedtime."
+    },
+    {
+     "bg": "field",
+     "items": [
+      [
+       "bus",
+       54,
+       34,
+       44
+      ],
+      [
+       "house",
+       108,
+       22,
+       46
+      ]
+     ],
+     "text": "The big yellow bus drives home."
+    },
+    {
+     "bg": "inside",
+     "items": [
+      [
+       "cat",
+       60,
+       36,
+       36
+      ]
+     ],
+     "text": "The cat curls up in a little ball."
+    },
+    {
+     "bg": "inside",
+     "items": [
+      [
+       "kidsleep",
+       30,
+       18,
+       56
+      ],
+      [
+       "book",
+       92,
+       34,
+       36
+      ]
+     ],
+     "text": "{name} puts on pajamas and reads a book."
+    },
+    {
+     "bg": "night",
+     "items": [
+      [
+       "moon",
+       16,
+       6,
+       30
+      ],
+      [
+       "star",
+       90,
+       8,
+       14
+      ],
+      [
+       "star",
+       116,
+       18,
+       12
+      ],
+      [
+       "star",
+       140,
+       8,
+       10
+      ],
+      [
+       "tree",
+       104,
+       26,
+       50
+      ]
+     ],
+     "text": "Outside, the moon and the stars come out to shine."
+    },
+    {
+     "bg": "night",
+     "items": [
+      [
+       "bed",
+       40,
+       30,
+       70
+      ],
+      [
+       "moon",
+       128,
+       6,
+       22
+      ]
+     ],
+     "text": "{name} snuggles into bed. Sleep tight, {name}. The End."
+    }
+   ]
+  }
+ ],
+ "audiobooks": []
+}
