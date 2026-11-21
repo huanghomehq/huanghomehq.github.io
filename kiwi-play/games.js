@@ -625,9 +625,9 @@
   window.GAMES = { trace, spy, traceNum, count, basket, spyNum, color: colorPic, hidden, diff, maze, rhyme, feelings };
   window.AREAS = [
     { id: 'letters', name: 'Letters', games: ['trace', 'spy'], tint: '#DCEBE8' },
-    { id: 'numbers', name: 'Numbers', games: ['count', 'basket', 'traceNum', 'spyNum'], tint: '#FBEBD0' },
+    { id: 'numbers', name: 'Numbers', games: ['count', 'traceNum', 'spyNum'], tint: '#FBEBD0' },
     { id: 'make', name: 'Art', games: ['color'], tint: '#E6E3F0' },
     { id: 'puzzles', name: 'Puzzles', games: ['hidden', 'diff'], tint: '#E1ECEA' }
-    // Hidden for now (code kept): Stories ({ id: 'stories', name: 'Stories', games: [], tint: '#DCE6F2' }), Mazes (maze), Rhymes and Feelings (games kept): { id: 'words', ... ['rhyme'] }, { id: 'feelings', ... ['feelings'] }
+    // Hidden for now (code kept): Fill the basket (basket), Stories ({ id: 'stories', name: 'Stories', games: [], tint: '#DCE6F2' }), Mazes (maze), Rhymes and Feelings (games kept): { id: 'words', ... ['rhyme'] }, { id: 'feelings', ... ['feelings'] }
   ];
 })();

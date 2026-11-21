@@ -1,11 +1,22 @@
 /* Kiwi Play — app shell: boot, home, game bar, pause, done/rest screens, grown-ups area, log, offline. */
 (function () {
   'use strict';
-  const APP_VERSION = '1.9.1';
+  const APP_VERSION = '1.10.0';
   const $ = (h) => { const t = document.createElement('template'); t.innerHTML = h.trim(); return t.content.firstElementChild; };
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const load = (k, d) => { try { const v = localStorage.getItem('jla.' + k); return v ? JSON.parse(v) : d; } catch (e) { return d; } };
-  const save = (k, v) => { try { localStorage.setItem('jla.' + k, JSON.stringify(v)); } catch (e) { /* storage full or blocked */ } };
+  let lsOK = true;
+  const save = (k, v) => { try { localStorage.setItem('jla.' + k, JSON.stringify(v)); } catch (e) { lsOK = false; } backupPut(k, v); };
+  // Backup copy of settings and progress in IndexedDB (some browsers clear one kind of storage but not the other)
+  const BACKUP_KEYS = ['settings', 'prog', 'usage', 'log', 'resume'];
+  function backupDB() { return new Promise((res, rej) => { if (!window.indexedDB) { rej(new Error('none')); return; } const r = indexedDB.open('kiwi-play-backup', 1); r.onupgradeneeded = () => r.result.createObjectStore('kv'); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }); }
+  let backupConn = null, backupQ = Promise.resolve();
+  function backupPut(k, v) {
+    if (BACKUP_KEYS.indexOf(k) < 0) return;
+    const val = JSON.stringify(v);
+    backupQ = backupQ.then(() => (backupConn || (backupConn = backupDB())).then((db) => new Promise((res) => { const tx = db.transaction('kv', 'readwrite'); tx.objectStore('kv').put(val, k); tx.oncomplete = res; tx.onerror = res; tx.onabort = res; }))).catch(() => {});
+  }
+  function backupGetAll() { return backupDB().then((db) => new Promise((res) => { const out = {}; const tx = db.transaction('kv', 'readonly'), st = tx.objectStore('kv'); BACKUP_KEYS.forEach((k) => { const q = st.get(k); q.onsuccess = () => { if (q.result) { try { out[k] = JSON.parse(q.result); } catch (e) { /* skip */ } } }; }); tx.oncomplete = () => res(out); tx.onerror = () => res(out); })).catch(() => ({})); }
   const today = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
   const shuffle = (a) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 
@@ -23,6 +34,16 @@
   let usage = load('usage', { date: today(), secs: 0 });
   let prog = load('prog', {});
   let screen = 'boot';
+  let restoredFromBackup = false;
+  backupGetAll().then((b) => {
+    let mainHas = false; try { mainHas = !!localStorage.getItem('jla.settings'); } catch (e) { mainHas = false; }
+    if (!mainHas && b.settings) {
+      settings = Object.assign({}, DEF_SETTINGS, b.settings); if (b.prog) prog = b.prog; if (b.usage) usage = b.usage;
+      ['settings', 'prog', 'usage', 'log', 'resume'].forEach((k) => { if (b[k] !== undefined) { try { localStorage.setItem('jla.' + k, JSON.stringify(b[k])); } catch (e) { /* blocked */ } } });
+      restoredFromBackup = true;
+      if (screen === 'boot') boot(); else if (screen === 'home') home();
+    }
+  });
   const kidName = () => String(settings.childName || '').trim();
   const hiName = () => kidName() ? 'Hi, ' + esc(kidName()) + '!' : 'Hi!';
   const initial = () => kidName() ? esc(kidName().charAt(0).toUpperCase()) : '\u2605';
@@ -396,6 +417,17 @@
     setPP(); render();
   }
 
+  /* ---------- does this browser keep saved data? (grown-ups) ---------- */
+  function storageStatus() {
+    let ok = true; try { localStorage.setItem('jla.__t', '1'); ok = localStorage.getItem('jla.__t') === '1'; localStorage.removeItem('jla.__t'); } catch (e) { ok = false; }
+    const pers = navigator.storage && navigator.storage.persisted ? navigator.storage.persisted().catch(() => null) : Promise.resolve(null);
+    return pers.then((kept) => {
+      if (!ok || !lsOK) return { ok: false, text: 'Saving is blocked in this browser: settings, drawings and the log won\u2019t be kept. Allow cookies / site data for this site.' };
+      if (restoredFromBackup) return { ok: false, text: 'Settings were wiped by the browser and restored from the backup copy. Allow cookies / site data so this stops happening.' };
+      return { ok: true, text: 'Saving works \u2713' + (kept ? ' (kept permanently)' : ' (the browser may clear it if storage runs low)') };
+    });
+  }
+
   /* ---------- offline check (grown-ups) ---------- */
   const OFFLINE_FILES = ['index.html', 'style.css', 'art.js', 'games.js', 'app.js', 'lessons.json', 'stories.json'];
   function offlineStatus() {
@@ -576,7 +608,7 @@
     const usedMin = Math.floor(usage.secs / 60), limMin = Math.round(limitSecs() / 60);
     const stepper = (key, label, min, max, step, unit) => '<div class="set-row"><span>' + label + '</span><div class="stepper" data-k="' + key + '" data-min="' + min + '" data-max="' + max + '" data-step="' + step + '"><button aria-label="Less">−</button><b>' + settings[key] + (unit || '') + '</b><button aria-label="More">+</button></div></div>';
     const el = $('<div class="screen grown">' +
-      '<div class="g-top"><div><h1>Grown-ups</h1><div class="sub">Lesson pack: ' + esc(lessons.version) + ' · app ' + APP_VERSION + ' · ' + (navigator.onLine ? 'online' : 'offline') + ' · <span id="offl">checking offline copy…</span></div></div><div class="g-btns" style="margin:0"><button class="g-btn primary" id="back">Back to the kid screen</button></div></div>' +
+      '<div class="g-top"><div><h1>Grown-ups</h1><div class="sub">Lesson pack: ' + esc(lessons.version) + ' · app ' + APP_VERSION + ' · ' + (navigator.onLine ? 'online' : 'offline') + ' · <span id="offl">checking offline copy…</span><br><span id="savechk">checking saving…</span></div></div><div class="g-btns" style="margin:0"><button class="g-btn primary" id="back">Back to the kid screen</button></div></div>' +
       (note ? '<div class="g-note">' + esc(note) + '</div>' : '') +
       '<div class="g-grid">' +
       '<section class="g-card"><h2>Today</h2><div class="big-stat">' + usedMin + ' <small>of ' + limMin + ' min</small></div><div class="g-btns"><button class="g-btn" id="plus">+15 min today</button><button class="g-btn" id="resetday">Reset today’s time</button></div>' +
@@ -590,6 +622,7 @@
       (L.length ? L.slice(-60).reverse().map((e) => '<tr><td>' + fmtTime(e.t) + '</td><td>' + esc(e.title) + (e.d ? ' <span class="muted">(' + esc(e.d) + ')</span>' : '') + '</td><td>' + (e.r === 'done' ? 'Finished' : e.r === 'stopped' ? 'Stopped early' : 'Skipped') + '</td><td>' + e.tries + '</td><td>' + (e.secs < 60 ? e.secs + ' s' : Math.round(e.secs / 60) + ' min') + '</td></tr>').join('') : '<tr><td colspan="5" class="muted">Nothing yet.</td></tr>') +
       '</tbody></table></div></section></div></div>');
     show('grown', el);
+    storageStatus().then((t) => { const o = el.querySelector('#savechk'); if (o) { o.textContent = t.text; o.className = t.ok ? 'ok' : 'warn-txt'; } });
     offlineStatus().then((s) => { const o = el.querySelector('#offl'); if (!o) return; o.textContent = !s ? 'offline copy: not available in this browser' : s.ok ? 'Ready for offline \u2713 (everything saved on this tablet)' : 'Not fully saved yet (' + s.have + '/' + OFFLINE_FILES.length + '). Open the app once on Wi-Fi.'; o.className = s && s.ok ? 'ok' : 'warn-txt'; });
     el.querySelector('#back').addEventListener('click', () => (overLimit() ? rest() : home()));
     const am = el.querySelector('#audiomgr'); if (am) am.addEventListener('click', () => audioManager()); // Audio books page hidden with Stories
@@ -602,7 +635,7 @@
       const set = (v) => { settings[k] = Math.max(mn, Math.min(mx, v)); save('settings', settings); s.querySelector('b').textContent = settings[k] + (k === 'dailyMin' ? ' min' : ''); };
       minus.addEventListener('click', () => set(settings[k] - st)); plus.addEventListener('click', () => set(settings[k] + st));
     });
-    el.querySelector('#kidname').addEventListener('change', (e) => { settings.childName = e.target.value.trim(); save('settings', settings); });
+    const kn = el.querySelector('#kidname'); const saveName = () => { settings.childName = kn.value.trim(); save('settings', settings); }; kn.addEventListener('input', saveName); kn.addEventListener('change', saveName); kn.addEventListener('blur', saveName);
     el.querySelector('#voice').addEventListener('click', (e) => { settings.sound = !settings.sound; save('settings', settings); e.target.textContent = settings.sound ? 'On' : 'Off'; });
     el.querySelector('#export').addEventListener('click', exportLog);
     el.querySelector('#update').addEventListener('click', () => {
