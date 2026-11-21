@@ -1,7 +1,7 @@
 /* Kiwi Play — app shell: boot, home, game bar, pause, done/rest screens, grown-ups area, log, offline. */
 (function () {
   'use strict';
-  const APP_VERSION = '1.9.0';
+  const APP_VERSION = '1.9.1';
   const $ = (h) => { const t = document.createElement('template'); t.innerHTML = h.trim(); return t.content.firstElementChild; };
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const load = (k, d) => { try { const v = localStorage.getItem('jla.' + k); return v ? JSON.parse(v) : d; } catch (e) { return d; } };
@@ -29,13 +29,27 @@
   const stage = document.getElementById('stage');
 
   /* ---------- screen fit: everything is laid out at 1280 x 800 and scaled ---------- */
-  function fit() {
-    const s = Math.min(window.innerWidth / 1280, window.innerHeight / 800);
+  // Fit the 1280x800 layout to the screen. Toolbars and the tablet's navigation bar pop in and out,
+  // which briefly shrinks the window's height; re-fitting on every one of those makes the whole app jump.
+  // So: the scale only changes when the width changes (rotation, split screen) or the height grows.
+  // A brief height drop just lets the bar cover the bottom edge for a moment.
+  let fitW = 0, fitH = 0, fitT = null;
+  function fit(force) {
+    const w = window.innerWidth, h = window.innerHeight;
+    if (!force && w === fitW && h <= fitH) return;
+    if (w !== fitW) fitH = h; else fitH = Math.max(fitH, h);
+    fitW = w;
+    const s = Math.min(w / 1280, fitH / 800);
     stage.style.transform = 'scale(' + s + ')';
-    stage.style.left = Math.max(0, (window.innerWidth - 1280 * s) / 2) + 'px';
-    stage.style.top = Math.max(0, (window.innerHeight - 800 * s) / 2) + 'px';
+    stage.style.left = Math.max(0, (w - 1280 * s) / 2) + 'px';
+    stage.style.top = Math.max(0, (fitH - 800 * s) / 2) + 'px';
   }
-  window.addEventListener('resize', fit); fit();
+  window.addEventListener('resize', () => { clearTimeout(fitT); fitT = setTimeout(() => fit(false), 150); });
+  window.addEventListener('orientationchange', () => { fitW = 0; setTimeout(() => fit(true), 300); });
+  fit(true);
+  // Ask for full screen (hides the toolbars) on taps, until the browser grants it
+  function goFull() { try { const d = document.documentElement; if (!document.fullscreenElement && d.requestFullscreen && !window.matchMedia('(display-mode: fullscreen)').matches) d.requestFullscreen({ navigationUI: 'hide' }).catch(() => {}); } catch (e) { /* not allowed here */ } }
+  document.addEventListener('pointerup', goFull, { passive: true });
 
   /* ---------- voice ---------- */
   let voice = null;

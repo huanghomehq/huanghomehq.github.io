@@ -1,7 +1,7 @@
 /* Kiwi Play — calm, low-stimulation styling. Laid out at 1280 x 800, scaled to the screen. */
 :root { --bg: #EEF2EF; --ink: #1F3B39; --ink2: #3E5653; --muted: #5B6F6C; --card: #FFFFFF; --teal: #2F6F6A; --tealSoft: #DCEBE8; --sun: #F2C46B; --line: #C9D5D1; }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-html, body { margin: 0; height: 100%; background: var(--bg); overflow: hidden; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
+html, body { margin: 0; height: 100%; background: var(--bg); overflow: hidden; overscroll-behavior: none; position: fixed; inset: 0; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
 #stage { position: absolute; width: 1280px; height: 800px; transform-origin: 0 0; font-family: Andika, 'Comic Neue', system-ui, sans-serif; color: var(--ink); }
 button { font: inherit; color: inherit; cursor: pointer; border: none; background: none; padding: 0; touch-action: manipulation; }
 svg { display: block; }
