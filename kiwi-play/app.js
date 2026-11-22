@@ -1,7 +1,7 @@
 /* Kiwi Play — app shell: boot, home, game bar, pause, done/rest screens, grown-ups area, log, offline. */
 (function () {
   'use strict';
-  const APP_VERSION = '1.16.0';
+  const APP_VERSION = '1.17.0';
   const $ = (h) => { const t = document.createElement('template'); t.innerHTML = h.trim(); return t.content.firstElementChild; };
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const load = (k, d) => { try { const v = localStorage.getItem('jla.' + k); return v ? JSON.parse(v) : d; } catch (e) { return d; } };
@@ -72,7 +72,16 @@
   window.addEventListener('orientationchange', () => { fitW = 0; setTimeout(() => fit(true), 300); });
   fit(true);
   // Ask for full screen (hides the toolbars) on taps, until the browser grants it
-  function goFull() { try { const d = document.documentElement; if (!document.fullscreenElement && d.requestFullscreen && !window.matchMedia('(display-mode: fullscreen)').matches) d.requestFullscreen({ navigationUI: 'hide' }).catch(() => {}); } catch (e) { /* not allowed here */ } }
+  // Asking on every tap is hard on some tablet browsers, so stop once it's granted or refused twice.
+  let fullTries = 0;
+  function goFull() {
+    try {
+      const d = document.documentElement;
+      if (document.fullscreenElement || !d.requestFullscreen || window.matchMedia('(display-mode: fullscreen)').matches || fullTries >= 2) { document.removeEventListener('pointerup', goFull); return; }
+      fullTries++;
+      d.requestFullscreen({ navigationUI: 'hide' }).then(() => document.removeEventListener('pointerup', goFull)).catch(() => {});
+    } catch (e) { document.removeEventListener('pointerup', goFull); }
+  }
   document.addEventListener('pointerup', goFull, { passive: true });
 
   /* ---------- voice ---------- */
@@ -85,8 +94,31 @@
   if ('speechSynthesis' in window) { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
   function speak(t) {
     if (!settings.sound || !('speechSynthesis' in window) || !t) return;
-    try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(t.replace(/—/g, ',')); u.rate = 0.88; u.pitch = 1.05; if (voice) u.voice = voice; speechSynthesis.speak(u); } catch (e) { /* no voice on this device */ }
+    // Android speech engines can fall over when speech is cancelled and restarted many times in a row, so quick taps
+    // only cancel once and the last sentence is spoken after a short pause.
+    speakText = t; clearTimeout(speakT);
+    try { if (speechSynthesis.speaking || speechSynthesis.pending) speechSynthesis.cancel(); } catch (e) {}
+    speakT = setTimeout(() => {
+      try { const u = new SpeechSynthesisUtterance(speakText.replace(/—/g, ',')); u.rate = 0.88; u.pitch = 1.05; if (voice) u.voice = voice; speakU = u; u.onend = u.onerror = () => { if (speakU === u) speakU = null; }; speechSynthesis.speak(u); } catch (e) { /* no voice on this device */ }
+    }, 180);
   }
+  let speakT = null, speakText = '', speakU = null;
+
+
+  /* ---------- crash recorder ----------
+     While a game is open the app notes where he is. If the tablet's browser kills the page, that note is still there
+     on the next start, so Grown-ups can show where it happened. Leaving normally (switching apps, closing) clears it. */
+  function markAlive(where) { try { localStorage.setItem('jla.alive', JSON.stringify({ t: Date.now(), where, heap: performance.memory ? Math.round(performance.memory.usedJSHeapSize / 1e6) : null })); } catch (e) {} }
+  function markClean() { try { localStorage.removeItem('jla.alive'); } catch (e) {} }
+  window.addEventListener('pagehide', markClean);
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') markClean(); });
+  (function checkLastRun() {
+    try {
+      const a = JSON.parse(localStorage.getItem('jla.alive') || 'null'); markClean();
+      if (a && Date.now() - a.t < 864e5) { const c = load('crashes', []); c.push({ t: a.t, where: a.where, heap: a.heap }); save('crashes', c.slice(-10)); }
+    } catch (e) {}
+  })();
+  window.addEventListener('error', (e) => { try { const c = load('errs', []); c.push({ t: Date.now(), m: String(e.message || e).slice(0, 160), w: screen }); save('errs', c.slice(-10)); } catch (x) {} });
 
   /* ---------- time limit ---------- */
   function limitSecs() { return (settings.dailyMin + (settings.extra && settings.extra.date === today() ? settings.extra.mins : 0)) * 60; }
@@ -99,7 +131,9 @@
   document.addEventListener('visibilitychange', () => { save('usage', usage); if (document.visibilityState !== 'visible' && 'speechSynthesis' in window) speechSynthesis.cancel(); });
 
   /* ---------- log ---------- */
-  function log(entry) { const L = load('log', []); L.push(entry); while (L.length > 3000) L.shift(); save('log', L); }
+  // Work log: kept in memory and capped, so each tap doesn't re-read and re-write a huge list on the tablet.
+  let logCache = null;
+  function log(entry) { if (!logCache) logCache = load('log', []); logCache.push(entry); if (logCache.length > 800) logCache = logCache.slice(-800); save('log', logCache); }
 
   /* ---------- lessons (lesson pack) ---------- */
   function fetchLessons(force) {
@@ -108,7 +142,7 @@
   }
 
   /* ---------- screens ---------- */
-  function show(name, el) { screen = name; stage.innerHTML = ''; stage.appendChild(el); if ('speechSynthesis' in window) speechSynthesis.cancel(); }
+  function show(name, el) { screen = name; stage.innerHTML = ''; stage.appendChild(el); clearTimeout(speakT); try { if ('speechSynthesis' in window && (speechSynthesis.speaking || speechSynthesis.pending)) speechSynthesis.cancel(); } catch (e) {} }
 
   function boot() {
     const el = $('<div class="screen boot"><div class="avatar big">' + initial() + '</div><h1>' + hiName() + '</h1><button class="kid-btn go huge" id="start" aria-label="Play">' + ART.icon.play + '</button></div>');
@@ -207,6 +241,7 @@
 
   function runSet(set) {
     save('resume', set);
+    markAlive('playing ' + (GAMES[set.list[set.i]] ? GAMES[set.list[set.i]].title : set.list[set.i]) + ', round ' + (set.results.length + 1));
     const id = set.list[set.i];
     const game = GAMES[id];
     const el = $('<div class="screen game">' +
@@ -675,7 +710,7 @@
     const usedMin = Math.floor(usage.secs / 60), limMin = Math.round(limitSecs() / 60);
     const stepper = (key, label, min, max, step, unit) => '<div class="set-row"><span>' + label + '</span><div class="stepper" data-k="' + key + '" data-min="' + min + '" data-max="' + max + '" data-step="' + step + '"><button aria-label="Less">−</button><b>' + settings[key] + (unit || '') + '</b><button aria-label="More">+</button></div></div>';
     const el = $('<div class="screen grown">' +
-      '<div class="g-top"><div><h1>Grown-ups</h1><div class="sub">Lesson pack: ' + esc(lessons.version) + ' · app ' + APP_VERSION + ' · ' + (navigator.onLine ? 'online' : 'offline') + ' · <span id="offl">checking offline copy…</span><br><span id="savechk">checking saving…</span></div></div><div class="g-btns" style="margin:0"><button class="g-btn" id="hardref">Load newest version</button><button class="g-btn primary" id="back">Back to the kid screen</button></div></div>' +
+      '<div class="g-top"><div><h1>Grown-ups</h1><div class="sub">Lesson pack: ' + esc(lessons.version) + ' · app ' + APP_VERSION + ' · ' + (navigator.onLine ? 'online' : 'offline') + ' · <span id="offl">checking offline copy…</span><br><span id="savechk">checking saving…</span>' + crashLine() + '</div></div><div class="g-btns" style="margin:0"><button class="g-btn" id="hardref">Load newest version</button><button class="g-btn primary" id="back">Back to the kid screen</button></div></div>' +
       (note ? '<div class="g-note">' + esc(note) + '</div>' : '') +
       '<div class="g-grid">' +
       '<section class="g-card"><h2>Today</h2><div class="big-stat">' + usedMin + ' <small>of ' + limMin + ' min</small></div><div class="g-btns"><button class="g-btn" id="plus">+15 min today</button><button class="g-btn" id="resetday">Reset today’s time</button></div>' +
@@ -712,7 +747,7 @@
     });
     el.querySelector('#hardref').addEventListener('click', (e) => hardRefresh(e.target));
     const clr = el.querySelector('#clear');
-    clr.addEventListener('click', () => { if (clr.dataset.sure) { save('log', []); grownups('Log cleared.'); } else { clr.dataset.sure = '1'; clr.textContent = 'Tap again to clear'; clr.classList.add('warn'); } });
+    clr.addEventListener('click', () => { if (clr.dataset.sure) { logCache = []; save('log', []); grownups('Log cleared.'); } else { clr.dataset.sure = '1'; clr.textContent = 'Tap again to clear'; clr.classList.add('warn'); } });
   }
 
 
@@ -747,6 +782,13 @@
     } catch (err) {
       btn.disabled = false; status('Couldn’t download — try again');
     }
+  }
+
+  function crashLine() {
+    const c = load('crashes', []), e = load('errs', []);
+    if (!c.length && !e.length) return '';
+    const last = c[c.length - 1];
+    return '<br><span class="warn-txt">' + (last ? 'App closed unexpectedly ' + c.length + '× — last ' + fmtTime(last.t) + ', ' + esc(last.where) + (last.heap ? ' (' + last.heap + ' MB)' : '') : '') + (e.length ? (last ? ' · ' : '') + 'Last error: ' + esc(e[e.length - 1].m) : '') + '</span>';
   }
 
   function exportLog() {
