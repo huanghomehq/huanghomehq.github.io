@@ -1,7 +1,7 @@
 /* Kiwi Play — app shell: boot, home, game bar, pause, done/rest screens, grown-ups area, log, offline. */
 (function () {
   'use strict';
-  const APP_VERSION = '1.14.0';
+  const APP_VERSION = '1.15.0';
   const $ = (h) => { const t = document.createElement('template'); t.innerHTML = h.trim(); return t.content.firstElementChild; };
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const load = (k, d) => { try { const v = localStorage.getItem('jla.' + k); return v ? JSON.parse(v) : d; } catch (e) { return d; } };
@@ -672,7 +672,7 @@
     const usedMin = Math.floor(usage.secs / 60), limMin = Math.round(limitSecs() / 60);
     const stepper = (key, label, min, max, step, unit) => '<div class="set-row"><span>' + label + '</span><div class="stepper" data-k="' + key + '" data-min="' + min + '" data-max="' + max + '" data-step="' + step + '"><button aria-label="Less">−</button><b>' + settings[key] + (unit || '') + '</b><button aria-label="More">+</button></div></div>';
     const el = $('<div class="screen grown">' +
-      '<div class="g-top"><div><h1>Grown-ups</h1><div class="sub">Lesson pack: ' + esc(lessons.version) + ' · app ' + APP_VERSION + ' · ' + (navigator.onLine ? 'online' : 'offline') + ' · <span id="offl">checking offline copy…</span><br><span id="savechk">checking saving…</span></div></div><div class="g-btns" style="margin:0"><button class="g-btn primary" id="back">Back to the kid screen</button></div></div>' +
+      '<div class="g-top"><div><h1>Grown-ups</h1><div class="sub">Lesson pack: ' + esc(lessons.version) + ' · app ' + APP_VERSION + ' · ' + (navigator.onLine ? 'online' : 'offline') + ' · <span id="offl">checking offline copy…</span><br><span id="savechk">checking saving…</span></div></div><div class="g-btns" style="margin:0"><button class="g-btn" id="hardref">Load newest version</button><button class="g-btn primary" id="back">Back to the kid screen</button></div></div>' +
       (note ? '<div class="g-note">' + esc(note) + '</div>' : '') +
       '<div class="g-grid">' +
       '<section class="g-card"><h2>Today</h2><div class="big-stat">' + usedMin + ' <small>of ' + limMin + ' min</small></div><div class="g-btns"><button class="g-btn" id="plus">+15 min today</button><button class="g-btn" id="resetday">Reset today’s time</button></div>' +
@@ -707,8 +707,43 @@
       if (navigator.serviceWorker && navigator.serviceWorker.getRegistration) navigator.serviceWorker.getRegistration().then((r) => r && r.update()).catch(() => {});
       Promise.all([fetchLessons(true), fetchStories(true).catch(() => false)]).then(([a, b]) => grownups(a || b ? 'New lessons or stories loaded.' : 'Already up to date.')).catch(() => grownups('Couldn’t reach the lessons. Try again on Wi-Fi.'));
     });
+    el.querySelector('#hardref').addEventListener('click', (e) => hardRefresh(e.target));
     const clr = el.querySelector('#clear');
     clr.addEventListener('click', () => { if (clr.dataset.sure) { save('log', []); grownups('Log cleared.'); } else { clr.dataset.sure = '1'; clr.textContent = 'Tap again to clear'; clr.classList.add('warn'); } });
+  }
+
+
+  /* Grown-ups "Load newest version": pulls every file fresh from the website (skipping all caches), swaps it into the
+     tablet's offline copy, updates the offline helper, then restarts the app in place. If any file fails to download,
+     nothing is changed, so the working offline copy is never half-replaced. Settings, log and drawings are untouched. */
+  const SITE_FILES = ['./', 'index.html', 'style.css', 'art.js', 'games.js', 'pages.js', 'app.js', 'lessons.json', 'stories.json', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png'];
+  async function hardRefresh(btn) {
+    const status = (t) => { btn.textContent = t; };
+    if (!navigator.onLine) { status('Offline — connect to Wi-Fi'); return; }
+    btn.disabled = true; status('Downloading…');
+    try {
+      const stamp = Date.now();
+      const got = await Promise.all(SITE_FILES.map((f) => fetch(f + (f.indexOf('?') < 0 ? '?fresh=' : '&fresh=') + stamp, { cache: 'no-store' }).then((r) => { if (!r.ok) throw new Error(f); return [f, r]; })));
+      const appTxt = await got.find(([f]) => f === 'app.js')[1].clone().text();
+      const newVer = (appTxt.match(/APP_VERSION = '([^']+)'/) || [])[1] || '?';
+      status('Installing ' + newVer + '…');
+      if (navigator.serviceWorker && navigator.serviceWorker.getRegistration) {
+        const reg = await navigator.serviceWorker.getRegistration();
+        if (reg) {
+          await reg.update().catch(() => {});
+          const w = reg.installing || reg.waiting;
+          if (w) await new Promise((res) => { const t = setTimeout(res, 10000); w.addEventListener('statechange', () => { if (w.state === 'activated' || w.state === 'redundant') { clearTimeout(t); res(); } }); });
+        }
+      }
+      if ('caches' in window) {
+        const keys = (await caches.keys()).filter((k) => k.indexOf('jla-') === 0);
+        for (const k of keys) { const c = await caches.open(k); await Promise.all(got.map(([f, r]) => c.put(f, r.clone()))); }
+      }
+      status(newVer === APP_VERSION ? 'Already newest (' + newVer + ') — reloading…' : 'Updated to ' + newVer + ' — reloading…');
+      setTimeout(() => location.reload(), 1200);
+    } catch (err) {
+      btn.disabled = false; status('Couldn’t download — try again');
+    }
   }
 
   function exportLog() {
