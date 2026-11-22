@@ -72,18 +72,22 @@
   const isDigit = (c) => /^[0-9]$/.test(c);
   const wordFor = (L) => isDigit(L) ? 'the number ' + L : (L === L.toUpperCase() ? 'big ' : 'little ') + L;
   // Letters alternate between the class's letters of the week and his name.
+  // One tracing game for letters: takes turns between this week's letters, the letters of his name (if set), and the whole A-Z in order.
   function chooseLetter(ctx) {
     const week = (ctx.lessons.traceLetters && ctx.lessons.traceLetters.length) ? ctx.lessons.traceLetters : ['U', 'H'];
     const name = (ctx.lessons.nameLetters && ctx.lessons.nameLetters.length) ? ctx.lessons.nameLetters : [];
-    const n = ctx.prog.n || 0, useName = name.length > 0 && n % 2 === 1;
-    const list = useName ? name : week, key = useName ? 'iName' : 'iWeek';
+    const n = ctx.prog.n || 0, turns = name.length ? ['week', 'name', 'abc'] : ['week', 'abc'], kind = turns[n % turns.length];
+    const list = kind === 'name' ? name : kind === 'abc' ? 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('') : week;
+    const key = kind === 'name' ? 'iName' : kind === 'abc' ? 'iAbc' : 'iWeek';
     const k = (ctx.prog[key] || 0) % list.length, L = list[k];
-    return { list, k, L, caption: useName && k === 0 ? L + ' is for ' + ctx.lessons.name : cap(wordFor(L)), done: () => { ctx.prog[key] = k + 1; ctx.prog.n = n + 1; } };
+    return { list, k, L, caption: kind === 'name' && k === 0 ? L + ' is for ' + ctx.lessons.name : cap(wordFor(L)), done: () => { ctx.prog[key] = k + 1; ctx.prog.n = n + 1; } };
   }
+  // One tracing game for numbers: takes turns between this week's numbers and 0-9 in order.
   function chooseNumber(ctx) {
-    const list = (ctx.lessons.traceNumbers && ctx.lessons.traceNumbers.length) ? ctx.lessons.traceNumbers.map(String) : ['8', '9'];
-    const k = (ctx.prog.i || 0) % list.length, L = list[k];
-    return { list, k, L, caption: 'The number ' + L, done: () => { ctx.prog.i = k + 1; } };
+    const week = (ctx.lessons.traceNumbers && ctx.lessons.traceNumbers.length) ? ctx.lessons.traceNumbers.map(String) : ['8', '9'];
+    const n = ctx.prog.n || 0, inOrd = n % 2 === 1, list = inOrd ? '0123456789'.split('') : week, key = inOrd ? 'iAll' : 'i';
+    const k = (ctx.prog[key] || 0) % list.length, L = list[k];
+    return { list, k, L, caption: 'The number ' + L, done: () => { ctx.prog[key] = k + 1; ctx.prog.n = n + 1; } };
   }
   const makeTrace = (id, area, title, choose) => ({
     id, area, title,
@@ -716,8 +720,8 @@
   window.TRACE_SHAPES = LETTERS; // used by tests
   window.GAMES = { trace, abc, spy, traceNum, nums, count, basket, spyNum, color: colorPic, hidden, diff, maze, rhyme, feelings };
   window.AREAS = [
-    { id: 'letters', name: 'Letters', games: ['trace', 'abc', 'spy'], tint: '#DCEBE8' },
-    { id: 'numbers', name: 'Numbers', games: ['count', 'traceNum', 'nums', 'spyNum'], tint: '#FBEBD0' },
+    { id: 'letters', name: 'Letters', games: ['trace', 'spy'], tint: '#DCEBE8' },
+    { id: 'numbers', name: 'Numbers', games: ['count', 'traceNum', 'spyNum'], tint: '#FBEBD0' },
     { id: 'make', name: 'Art', games: ['color'], tint: '#E6E3F0' },
     { id: 'puzzles', name: 'Puzzles', games: ['hidden', 'diff'], tint: '#E1ECEA' }
     // Hidden for now (code kept): Fill the basket (basket), Stories ({ id: 'stories', name: 'Stories', games: [], tint: '#DCE6F2' }), Mazes (maze), Rhymes and Feelings (games kept): { id: 'words', ... ['rhyme'] }, { id: 'feelings', ... ['feelings'] }

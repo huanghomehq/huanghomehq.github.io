@@ -1,7 +1,7 @@
 /* Kiwi Play — app shell: boot, home, game bar, pause, done/rest screens, grown-ups area, log, offline. */
 (function () {
   'use strict';
-  const APP_VERSION = '1.15.0';
+  const APP_VERSION = '1.16.0';
   const $ = (h) => { const t = document.createElement('template'); t.innerHTML = h.trim(); return t.content.firstElementChild; };
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const load = (k, d) => { try { const v = localStorage.getItem('jla.' + k); return v ? JSON.parse(v) : d; } catch (e) { return d; } };
@@ -175,9 +175,12 @@
     const T = (txt, size, extra) => '<text x="50" y="' + (size > 50 ? 72 : 64) + '" text-anchor="middle" font-family="Andika, sans-serif" font-weight="700" font-size="' + size + '" ' + (extra || 'fill="#2F6F6A"') + '>' + txt + '</text>';
     const dotted = (txt) => T(txt, 72, 'fill="none" stroke="#2F6F6A" stroke-width="3" stroke-dasharray="5 5"') + '<circle cx="30" cy="22" r="7" fill="#F2C46B"/>';
     const glass = (inner) => '<circle cx="44" cy="44" r="28" fill="#fff" stroke="#2B3B39" stroke-width="5"/>' + inner + '<path d="M64 64 L84 84" stroke="#2B3B39" stroke-width="9" stroke-linecap="round"/>';
+    // Looks like the tracing screen: a wide grey letter with a dashed path down the middle and the yellow start dot.
+    const traceIcon = (d, x, y) => '<g fill="none" stroke-linecap="round" stroke-linejoin="round"><g stroke="#C9D5D1" stroke-width="16">' + d + '</g><g stroke="#2F6F6A" stroke-width="3.5" stroke-dasharray="5 6">' + d + '</g></g><circle cx="' + x + '" cy="' + y + '" r="8" fill="#F2C46B" stroke="#fff" stroke-width="2"/>';
     const s = (body) => '<svg viewBox="0 0 100 100" aria-hidden="true">' + body + '</svg>';
     return {
-      trace: s(dotted('A')), abc: s(T('ABC', 40)), traceNum: s(dotted('8')), nums: s(T('123', 40)),
+      trace: s(traceIcon('<path d="M28 84 L50 16 L72 84 M36 60 H64"/>', 28, 84)),
+      traceNum: s(traceIcon('<circle cx="50" cy="32" r="16"/><circle cx="50" cy="66" r="19"/>', 50, 16)),
       spy: s(glass('<text x="44" y="57" text-anchor="middle" font-family="Andika, sans-serif" font-weight="700" font-size="36" fill="#2F6F6A">A</text>')),
       spyNum: s(glass('<text x="44" y="57" text-anchor="middle" font-family="Andika, sans-serif" font-weight="700" font-size="36" fill="#2F6F6A">8</text>')),
       count: s([[28, 34], [50, 34], [72, 34], [28, 62], [50, 62], [72, 62]].map(([x, y]) => '<circle cx="' + x + '" cy="' + y + '" r="9" fill="#E08A3C" stroke="#2B3B39" stroke-width="3"/>').join('')),
