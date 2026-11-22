@@ -1,7 +1,7 @@
 /* Kiwi Play — app shell: boot, home, game bar, pause, done/rest screens, grown-ups area, log, offline. */
 (function () {
   'use strict';
-  const APP_VERSION = '1.17.0';
+  const APP_VERSION = '1.18.0';
   const $ = (h) => { const t = document.createElement('template'); t.innerHTML = h.trim(); return t.content.firstElementChild; };
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const load = (k, d) => { try { const v = localStorage.getItem('jla.' + k); return v ? JSON.parse(v) : d; } catch (e) { return d; } };
@@ -718,7 +718,7 @@
       '<section class="g-card"><h2>Play one game</h2><div class="g-games">' + Object.keys(GAMES).filter((k) => AREAS.some((a) => a.games.indexOf(k) >= 0)).map((k) => '<button class="g-btn" data-g="' + k + '">' + esc(GAMES[k].title) + '</button>').join('') + '</div>' +
       '<h2>Settings</h2>' + stepper('dailyMin', 'Daily limit', 5, 60, 5, ' min') + stepper('countMax', 'Count up to', 3, 20, 1) +
       '<div class="set-row"><span>Child’s name (stays on this tablet)</span><input id="kidname" class="g-input" type="text" maxlength="20" value="' + esc(kidName()) + '" placeholder="Name"></div>' +
-      '<div class="set-row"><span>Voice</span><button class="g-btn" id="voice">' + (settings.sound ? 'On' : 'Off') + '</button></div></section>' +
+      '<div class="set-row"><span>Voice</span><button class="g-btn" id="voice">' + (settings.sound ? 'On' : 'Off') + '</button><button class="g-btn" id="vtest">Test voice</button></div><div class="muted" id="vres" style="font-size:14px;margin-top:6px"></div></section>' +
       '<section class="g-card wide"><div class="g-head"><h2>' + (kidName() ? esc(kidName()) + '’s work' : 'Work log') + '</h2><div class="g-btns"><button class="g-btn" id="export">Send / save log</button><button class="g-btn" id="update">Check for new lessons</button><button class="g-btn" id="clear">Clear log</button></div></div>' +
       '<div class="log"><table><thead><tr><th>When</th><th>Game</th><th>How it went</th><th>Wrong tries</th><th>Time</th></tr></thead><tbody>' +
       (L.length ? L.slice(-60).reverse().map((e) => '<tr><td>' + fmtTime(e.t) + '</td><td>' + esc(e.title) + (e.d ? ' <span class="muted">(' + esc(e.d) + ')</span>' : '') + '</td><td>' + (e.r === 'done' ? 'Finished' : e.r === 'stopped' ? 'Stopped early' : 'Skipped') + '</td><td>' + e.tries + '</td><td>' + (e.secs < 60 ? e.secs + ' s' : Math.round(e.secs / 60) + ' min') + '</td></tr>').join('') : '<tr><td colspan="5" class="muted">Nothing yet.</td></tr>') +
@@ -739,6 +739,7 @@
     });
     const kn = el.querySelector('#kidname'); const saveName = () => { settings.childName = kn.value.trim(); save('settings', settings); }; kn.addEventListener('input', saveName); kn.addEventListener('change', saveName); kn.addEventListener('blur', saveName);
     el.querySelector('#voice').addEventListener('click', (e) => { settings.sound = !settings.sound; save('settings', settings); e.target.textContent = settings.sound ? 'On' : 'Off'; });
+    el.querySelector('#vtest').addEventListener('click', () => voiceTest(el.querySelector('#vres')));
     el.querySelector('#export').addEventListener('click', exportLog);
     el.querySelector('#update').addEventListener('click', () => {
       if (!navigator.onLine) { grownups('You’re offline. Connect to Wi-Fi and try again.'); return; }
@@ -789,6 +790,26 @@
     if (!c.length && !e.length) return '';
     const last = c[c.length - 1];
     return '<br><span class="warn-txt">' + (last ? 'App closed unexpectedly ' + c.length + '× — last ' + fmtTime(last.t) + ', ' + esc(last.where) + (last.heap ? ' (' + last.heap + ' MB)' : '') : '') + (e.length ? (last ? ' · ' : '') + 'Last error: ' + esc(e[e.length - 1].m) : '') + '</span>';
+  }
+
+
+  /* Grown-ups "Test voice": speaks a sentence and reports what this browser actually did, so speech can be checked on the tablet. */
+  function voiceTest(out) {
+    const show = (t) => { out.textContent = t; };
+    if (!('speechSynthesis' in window)) { show('✗ This browser has no speech support, so instructions will only be shown as text.'); return; }
+    const vs = speechSynthesis.getVoices(); pickVoice();
+    const info = vs.length + ' voice' + (vs.length === 1 ? '' : 's') + ' found' + (voice ? ', using "' + voice.name + '" (' + voice.lang + ')' : vs.length ? ', none in English' : ' (the tablet may still be loading them; try again in a few seconds)');
+    if (!settings.sound) show('Voice is turned Off above, so the games stay silent. ' + info + '.');
+    else show('Speaking… ' + info + '.');
+    clearTimeout(speakT);
+    try { speechSynthesis.cancel(); } catch (e) {}
+    let started = false;
+    const u = new SpeechSynthesisUtterance('Hi! The voice is working.'); u.rate = 0.88; u.pitch = 1.05; if (voice) u.voice = voice;
+    const timer = setTimeout(() => { if (!started) show('✗ Nothing played after 6 seconds. ' + info + '. Check the tablet volume and that a text-to-speech engine is installed (Settings → Accessibility → Text-to-speech).'); }, 6000);
+    u.onstart = () => { started = true; show('Speaking… ' + info + '.'); };
+    u.onend = () => { clearTimeout(timer); show('✓ Voice works. ' + info + '. (If you heard nothing, turn up the media volume.)'); };
+    u.onerror = (e) => { clearTimeout(timer); show('✗ Speech error: ' + (e.error || 'unknown') + '. ' + info + '.'); };
+    try { speechSynthesis.speak(u); } catch (e) { clearTimeout(timer); show('✗ Speech failed: ' + e.message); }
   }
 
   function exportLog() {
