@@ -1,7 +1,7 @@
 /* Kiwi Play — app shell: boot, home, game bar, pause, done/rest screens, grown-ups area, log, offline. */
 (function () {
   'use strict';
-  const APP_VERSION = '1.12.0';
+  const APP_VERSION = '1.13.0';
   const $ = (h) => { const t = document.createElement('template'); t.innerHTML = h.trim(); return t.content.firstElementChild; };
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const load = (k, d) => { try { const v = localStorage.getItem('jla.' + k); return v ? JSON.parse(v) : d; } catch (e) { return d; } };
@@ -44,6 +44,9 @@
       if (screen === 'boot') boot(); else if (screen === 'home') home();
     }
   });
+  // A touch this wide is a palm or the side of a hand, not a fingertip.
+  window.isPalm = (e) => e.pointerType === 'touch' && Math.max(e.width || 0, e.height || 0) > 60;
+  const isPalm = window.isPalm;
   const kidName = () => String(settings.childName || '').trim();
   const hiName = () => kidName() ? 'Hi, ' + esc(kidName()) + '!' : 'Hi!';
   const initial = () => kidName() ? esc(kidName().charAt(0).toUpperCase()) : '\u2605';
@@ -500,11 +503,10 @@
     freeArtUrls();
     const cur = pic || { id: 'p' + Date.now(), template: null, png: null, updated: Date.now() };
     const el = $('<div class="screen dr">' +
-      '<div class="dr-left"><button class="round-btn" id="home" aria-label="Back">' + ART.icon.home + '</button><button class="round-btn" id="gal" aria-label="My pictures">' + DI.gallery + '</button></div>' +
-      '<div class="dr-paper"><canvas width="' + DW + '" height="' + DH + '"></canvas>' + (cur.template ? tplSvg(cur.template) : '') + '</div>' +
-      '<div class="dr-tools"><div class="dr-colors"></div><div class="dr-sizes"></div>' +
-      '<div class="dr-row"><button class="kid-btn plain" id="eraser" aria-label="Eraser">' + DI.eraser + '</button><button class="kid-btn plain" id="undo" aria-label="Undo">' + DI.undo + '</button></div>' +
-      '<div class="dr-row"><button class="kid-btn go" id="new" aria-label="New page">' + DI.plus + '</button></div></div></div>');
+      '<div class="dr-paperbox"><div class="dr-paper"><canvas width="' + DW + '" height="' + DH + '"></canvas>' + (cur.template ? tplSvg(cur.template) : '') + '</div></div>' +
+      '<div class="dr-tools"><div class="dr-row dr-nav"><button class="round-btn" id="home" aria-label="Back">' + ART.icon.home + '</button><button class="round-btn" id="gal" aria-label="My pictures">' + DI.gallery + '</button></div>' +
+      '<div class="dr-colors"></div><div class="dr-sizes"></div>' +
+      '<div class="dr-row"><button class="kid-btn plain" id="eraser" aria-label="Eraser">' + DI.eraser + '</button><button class="kid-btn plain" id="undo" aria-label="Undo">' + DI.undo + '</button><button class="kid-btn go" id="new" aria-label="New page">' + DI.plus + '</button></div></div></div>');
     show('draw', el);
     const cv = el.querySelector('canvas'), cx = cv.getContext('2d');
     let base = null; const strokes = []; let live = null, dirty = false, saveT = null;
@@ -519,7 +521,14 @@
     function redraw() { cx.fillStyle = '#FFFFFF'; cx.fillRect(0, 0, DW, DH); if (base) cx.drawImage(base, 0, 0, DW, DH); strokes.forEach(paint); }
     if (cur.png) { const im = new Image(); im.onload = () => { base = im; redraw(); }; im.src = artUrl(cur.png); } else redraw();
     const pt = (e) => { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) * DW / r.width, (e.clientY - r.top) * DH / r.height]; };
-    cv.addEventListener('pointerdown', (e) => { if (live) return; cv.setPointerCapture(e.pointerId); live = { id: e.pointerId, color: dColor, size: dErase ? dSize * 2 : dSize, erase: dErase, pts: [pt(e)] }; paint(live); });
+    cv.addEventListener('pointerdown', (e) => {
+      if (isPalm(e)) return;
+      if (live) {
+        // A resting hand often lands first. If the first touch has barely moved and the new one is higher up, the new one is the finger.
+        if (live.pts.length < 8 && pt(e)[1] < live.pts[0][1] - 40) { live = null; redraw(); } else return;
+      }
+      try { cv.setPointerCapture(e.pointerId); } catch (err) {} live = { id: e.pointerId, color: dColor, size: dErase ? dSize * 2 : dSize, erase: dErase, pts: [pt(e)] }; paint(live);
+    });
     cv.addEventListener('pointermove', (e) => {
       if (!live || e.pointerId !== live.id) return;
       const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [e]; const start = live.pts.length - 1;

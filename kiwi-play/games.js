@@ -124,18 +124,21 @@
       }
       function pt(e) { const m = svg.getScreenCTM(); const q = svg.createSVGPoint(); q.x = e.clientX; q.y = e.clientY; const r = q.matrixTransform(m.inverse()); return [r.x, r.y]; }
       const near = (a, b, d) => Math.hypot(a[0] - b[0], a[1] - b[1]) < d;
+      let pid = null;
+      const palm = (e) => window.isPalm && window.isPalm(e);
       svg.addEventListener('pointerdown', (e) => {
-        if (si >= strokes.length) return;
+        if (si >= strokes.length || palm(e)) return;
+        if (down && pid !== null && e.pointerId !== pid) return; // a second touch (resting hand) while tracing: ignore it quietly
         const p = pt(e), s = strokes[si];
         if (idx === 0) {
           if (near(p, s.p[0], 13)) cur = s.p;
           else if (s.rev && near(p, s.p[s.p.length - 1], 13)) cur = s.p.slice().reverse();
           else { misses++; ctx.msg('Start on the yellow dot.'); return; }
         } else if (!near(p, cur[idx], 15)) { ctx.msg('Keep going from the yellow dot.'); return; }
-        down = true; ink = [p]; svg.setPointerCapture(e.pointerId); draw();
+        down = true; pid = e.pointerId; ink = [p]; try { svg.setPointerCapture(e.pointerId); } catch (err) {} draw();
       });
       svg.addEventListener('pointermove', (e) => {
-        if (!down) return;
+        if (!down || e.pointerId !== pid) return;
         const p = pt(e); ink.push(p);
         let best = -1, bd = 12;
         for (let j = idx + 1; j <= Math.min(idx + 9, cur.length - 1); j++) { const d = Math.hypot(p[0] - cur[j][0], p[1] - cur[j][1]); if (d < bd) { bd = d; best = j; } }
@@ -147,7 +150,7 @@
         }
         draw();
       });
-      const up = () => { down = false; ink = []; draw(); };
+      const up = (e) => { if (pid !== null && e.pointerId !== pid) return; down = false; pid = null; ink = []; draw(); };
       svg.addEventListener('pointerup', up); svg.addEventListener('pointercancel', up);
       again.addEventListener('click', () => { si = 0; idx = 0; cur = null; ink = []; draw(); ctx.say('Trace ' + wordFor(L) + '. Start on the yellow dot.'); });
       draw();

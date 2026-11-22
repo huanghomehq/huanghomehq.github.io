@@ -356,3 +356,30 @@ h1 { margin: 0; font-size: 48px; font-weight: 700; }
 .dr-tab.close svg { width: 54px; height: 54px; }
 .dr-pgrid { flex: 1; overflow-y: auto; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; align-content: start; touch-action: pan-y; padding: 2px; }
 .dr-pgrid .dr-tpl { height: 170px; }
+
+/* v1.13: 8-inch, left-handed pass. Everything he taps is on the right; the left side is free for his resting hand. */
+.bar { height: 92px; }
+.round-btn { width: 88px; height: 88px; }
+.round-btn.next { width: 120px; }
+.round-btn svg { width: 42px; height: 42px; }
+.name-row .tile { height: 84px; }
+/* drawing studio: paper keeps the saved picture's shape (10:7) so coloring lines up with the outline in the gallery */
+.screen.dr { gap: 22px; padding: 20px 24px; }
+.dr-left { display: none; }
+.dr-paperbox { flex: 1; min-width: 0; display: flex; align-items: center; justify-content: center; }
+.dr-paper { flex: none; width: 100%; aspect-ratio: 10 / 7; max-height: 100%; }
+.dr-tools { width: 290px; gap: 12px; justify-content: center; }
+.dr-nav .round-btn { flex: 1; width: auto; height: 84px; }
+.dr-colors { gap: 10px; }
+.dr-color { height: 76px; }
+.dr-sizes { gap: 10px; }
+.dr-size { height: 84px; }
+.dr-tools .dr-row .kid-btn { height: 90px; }
+/* coloring page picker: blank page tile was squeezed by the word-blank style */
+.dr-tpl.blank { width: auto; height: 170px; border-width: 5px; border-radius: 24px; display: flex; }
+/* puzzles: bigger hint and found-it slots */
+.df-side { width: 140px; }
+.df-side .kid-btn.wide { height: 100px; }
+.hp-side { width: 250px; }
+.hp-ic { width: 76px; height: 76px; }
+.hp-slot { height: 118px; }
