@@ -1,7 +1,7 @@
 /* Kiwi Play — app shell: boot, home, game bar, pause, done/rest screens, grown-ups area, log, offline. */
 (function () {
   'use strict';
-  const APP_VERSION = '1.13.0';
+  const APP_VERSION = '1.14.0';
   const $ = (h) => { const t = document.createElement('template'); t.innerHTML = h.trim(); return t.content.firstElementChild; };
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const load = (k, d) => { try { const v = localStorage.getItem('jla.' + k); return v ? JSON.parse(v) : d; } catch (e) { return d; } };
@@ -139,7 +139,7 @@
     const tiles = el.querySelector('.tiles');
     AREAS.forEach((a) => {
       const b = $('<button class="tile">' + areaArt(a) + '<span class="tile-name">' + a.name + '</span></button>');
-      b.addEventListener('click', () => (a.id === 'stories' ? shelf() : a.id === 'make' ? artMenu() : startSet(a.id)));
+      b.addEventListener('click', () => (a.id === 'stories' ? shelf() : a.id === 'make' ? artMenu() : areaMenu(a.id)));
       tiles.appendChild(b);
     });
     el.querySelector('#today').addEventListener('click', () => startSet('today'));
@@ -148,28 +148,67 @@
     show('home', el);
   }
 
-  function buildList(areaId, only) {
-    const n = Math.max(1, settings.perSet);
-    if (only) return [only];
+  // Sets no longer stop after a few games: the list grows as he plays, until he goes back or the daily limit is reached.
+  function moreGames(areaId, only, k) {
+    if (only) return Array(k).fill(only);
     if (areaId === 'today') {
       const order = shuffle(AREAS.filter((a) => a.games.length)); const out = [];
-      for (let i = 0; out.length < n; i++) { const a = order[i % order.length]; out.push(a.games[Math.floor(Math.random() * a.games.length)]); }
+      for (let i = 0; out.length < k; i++) { const a = order[i % order.length]; out.push(a.games[Math.floor(Math.random() * a.games.length)]); }
       return out;
     }
-    const a = AREAS.find((x) => x.id === areaId);
+    const a = AREAS.find((x) => x.id === areaId) || AREAS[0];
     const out = []; let pool = [];
-    while (out.length < n) { if (!pool.length) pool = shuffle(a.games); out.push(pool.pop()); }
+    while (out.length < k) { if (!pool.length) pool = shuffle(a.games); out.push(pool.pop()); }
     return out;
   }
-  function startSet(areaId, only) { runSet({ area: areaId, list: buildList(areaId, only), i: 0, results: [] }); }
+  function startSet(areaId, only) { runSet({ area: areaId, only: only || null, list: moreGames(areaId, only, 3), i: 0, results: [] }); }
+
+  // Where the house button on a game goes: up one level.
+  function upFrom(set) {
+    if (set.area === 'make') return artMenu();
+    if (set.area && set.area !== 'today' && AREAS.some((a) => a.id === set.area)) return areaMenu(set.area);
+    return home();
+  }
+
+  // Picture cards for each game, so he can choose instead of getting a random one.
+  const GI = (() => {
+    const T = (txt, size, extra) => '<text x="50" y="' + (size > 50 ? 72 : 64) + '" text-anchor="middle" font-family="Andika, sans-serif" font-weight="700" font-size="' + size + '" ' + (extra || 'fill="#2F6F6A"') + '>' + txt + '</text>';
+    const dotted = (txt) => T(txt, 72, 'fill="none" stroke="#2F6F6A" stroke-width="3" stroke-dasharray="5 5"') + '<circle cx="30" cy="22" r="7" fill="#F2C46B"/>';
+    const glass = (inner) => '<circle cx="44" cy="44" r="28" fill="#fff" stroke="#2B3B39" stroke-width="5"/>' + inner + '<path d="M64 64 L84 84" stroke="#2B3B39" stroke-width="9" stroke-linecap="round"/>';
+    const s = (body) => '<svg viewBox="0 0 100 100" aria-hidden="true">' + body + '</svg>';
+    return {
+      trace: s(dotted('A')), abc: s(T('ABC', 40)), traceNum: s(dotted('8')), nums: s(T('123', 40)),
+      spy: s(glass('<text x="44" y="57" text-anchor="middle" font-family="Andika, sans-serif" font-weight="700" font-size="36" fill="#2F6F6A">A</text>')),
+      spyNum: s(glass('<text x="44" y="57" text-anchor="middle" font-family="Andika, sans-serif" font-weight="700" font-size="36" fill="#2F6F6A">8</text>')),
+      count: s([[28, 34], [50, 34], [72, 34], [28, 62], [50, 62], [72, 62]].map(([x, y]) => '<circle cx="' + x + '" cy="' + y + '" r="9" fill="#E08A3C" stroke="#2B3B39" stroke-width="3"/>').join('')),
+      color: s('<path d="M20 80 L70 30 L80 40 L30 90 Z" fill="#C9473A" stroke="#2B3B39" stroke-width="4" stroke-linejoin="round"/><path d="M70 30 L78 16 L88 26 L80 40 Z" fill="#F2D27E" stroke="#2B3B39" stroke-width="4" stroke-linejoin="round"/><text x="34" y="44" font-family="Andika, sans-serif" font-weight="700" font-size="30" fill="#2F6F6A">1</text>'),
+      hidden: s('<rect x="10" y="14" width="80" height="62" rx="8" fill="#DCEBE8" stroke="#2B3B39" stroke-width="4"/><path d="M10 60 C35 50 60 66 90 56 V76 H10 Z" fill="#A9C77A" stroke="#2B3B39" stroke-width="3"/>' + glass('').replace(/44/g, '58').replace('r="28"', 'r="20"').replace('fill="#fff"', 'fill="#fff" fill-opacity="0.7"').replace('M64 64 L84 84', 'M72 72 L88 88')),
+      diff: s('<rect x="6" y="26" width="40" height="48" rx="6" fill="#DCEBE8" stroke="#2B3B39" stroke-width="4"/><rect x="54" y="26" width="40" height="48" rx="6" fill="#DCEBE8" stroke="#2B3B39" stroke-width="4"/><circle cx="26" cy="50" r="9" fill="#C9473A"/><circle cx="74" cy="50" r="9" fill="#4A6FA5"/>')
+    };
+  })();
+
+  function areaMenu(areaId) {
+    if (overLimit()) { rest(); return; }
+    const area = AREAS.find((a) => a.id === areaId); if (!area) { home(); return; }
+    const el = $('<div class="screen art-menu area-menu"><div class="bar"><button class="round-btn" id="home" aria-label="Home">' + ART.icon.home + '</button><div></div><div style="width:88px"></div></div>' +
+      '<div class="art-choices" style="grid-template-columns:repeat(' + area.games.length + ', minmax(0, 1fr))"></div></div>');
+    const box = el.querySelector('.art-choices');
+    area.games.forEach((g) => {
+      const b = $('<button class="art-choice" style="background:#fff" aria-label="' + esc(GAMES[g].title) + '"><div class="ac-art" style="background:' + area.tint + '">' + (GI[g] || '') + '</div></button>');
+      b.addEventListener('click', () => startSet(areaId, g)); box.appendChild(b);
+    });
+    el.querySelector('#home').addEventListener('click', home);
+    show('area', el);
+    speak('Pick a game.');
+  }
 
   function runSet(set) {
     save('resume', set);
     const id = set.list[set.i];
     const game = GAMES[id];
     const el = $('<div class="screen game">' +
-      '<div class="bar"><button class="round-btn" id="pause" aria-label="Pause">' + ART.icon.home + '</button>' +
-      '<div class="dots">' + set.list.map((_, i) => '<i class="' + (i < set.i ? 'done' : i === set.i ? 'now' : '') + '"></i>').join('') + '</div>' +
+      '<div class="bar"><button class="round-btn" id="pause" aria-label="Back">' + ART.icon.home + '</button>' +
+      '<div class="dots">' + set.results.slice(-8).map(() => '<i class="done"></i>').join('') + '<i class="now"></i></div>' +
       '<div class="bar-r"><button class="round-btn yellow" id="again" aria-label="Hear it again">' + ART.icon.speaker + '</button><button class="round-btn next faded" id="next" aria-label="Next">' + ART.icon.next + '</button></div></div>' +
       '<div class="game-root"></div><div class="msgline" aria-live="polite"></div></div>');
     show('game', el);
@@ -192,14 +231,14 @@
     };
     try { game.render(ctx); } catch (e) { line.textContent = 'Oops, this game had a problem. Tap the arrow.'; console.error(e); }
     el.querySelector('#again').addEventListener('click', () => speak(lastSay));
-    el.querySelector('#pause').addEventListener('click', () => pauseCard(el));
+    el.querySelector('#pause').addEventListener('click', () => { if ('speechSynthesis' in window) speechSynthesis.cancel(); upFrom(set); });
     next.addEventListener('click', () => {
       const secs = Math.round((Date.now() - t0) / 1000);
       log({ t: Date.now(), g: id, title: game.title, r: won ? 'done' : 'skipped', tries, secs, d: detail ? Object.values(detail).join(' ') : '' });
-      set.results.push({ g: id, title: game.title, ok: won, text: won ? (ctx.winText || game.title) : '' });
+      set.results.push({ g: id, ok: won }); if (set.results.length > 20) set.results = set.results.slice(-20);
       set.i++;
-      if (set.i >= set.list.length) { save('resume', null); done(set); }
-      else if (overLimit()) { save('resume', null); rest(); }
+      if (set.i >= set.list.length) { set.list = set.list.slice(-3).concat(moreGames(set.area, set.only, 3)); set.i = set.list.length - 3; }
+      if (overLimit()) { save('resume', null); rest(); }
       else runSet(set);
     });
   }
@@ -639,7 +678,7 @@
       '<section class="g-card"><h2>Today</h2><div class="big-stat">' + usedMin + ' <small>of ' + limMin + ' min</small></div><div class="g-btns"><button class="g-btn" id="plus">+15 min today</button><button class="g-btn" id="resetday">Reset today’s time</button></div>' +
       '<h2>This week</h2><ul class="focus">' + (lessons.focus || []).map((f) => '<li>' + esc(f) + '</li>').join('') + '</ul></section>' +
       '<section class="g-card"><h2>Play one game</h2><div class="g-games">' + Object.keys(GAMES).filter((k) => AREAS.some((a) => a.games.indexOf(k) >= 0)).map((k) => '<button class="g-btn" data-g="' + k + '">' + esc(GAMES[k].title) + '</button>').join('') + '</div>' +
-      '<h2>Settings</h2>' + stepper('perSet', 'Games per sitting', 1, 6, 1) + stepper('dailyMin', 'Daily limit', 5, 60, 5, ' min') + stepper('countMax', 'Count up to', 3, 20, 1) +
+      '<h2>Settings</h2>' + stepper('dailyMin', 'Daily limit', 5, 60, 5, ' min') + stepper('countMax', 'Count up to', 3, 20, 1) +
       '<div class="set-row"><span>Child’s name (stays on this tablet)</span><input id="kidname" class="g-input" type="text" maxlength="20" value="' + esc(kidName()) + '" placeholder="Name"></div>' +
       '<div class="set-row"><span>Voice</span><button class="g-btn" id="voice">' + (settings.sound ? 'On' : 'Off') + '</button></div></section>' +
       '<section class="g-card wide"><div class="g-head"><h2>' + (kidName() ? esc(kidName()) + '’s work' : 'Work log') + '</h2><div class="g-btns"><button class="g-btn" id="export">Send / save log</button><button class="g-btn" id="update">Check for new lessons</button><button class="g-btn" id="clear">Clear log</button></div></div>' +

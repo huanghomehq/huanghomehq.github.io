@@ -383,3 +383,11 @@ h1 { margin: 0; font-size: 48px; font-weight: 700; }
 .hp-side { width: 250px; }
 .hp-ic { width: 76px; height: 76px; }
 .hp-slot { height: 118px; }
+
+/* v1.14: game menu cards for Letters, Numbers and Puzzles */
+.ac-art { width: 300px; height: 300px; border-radius: 36px; display: flex; align-items: center; justify-content: center; }
+.ac-art svg { width: 230px; height: 230px; }
+.area-menu .art-choices { gap: 24px; }
+.area-menu .art-choice { height: 460px; }
+.ac-art { width: min(300px, 86%); height: auto; aspect-ratio: 1; }
+.ac-art svg { width: 78%; height: 78%; }
