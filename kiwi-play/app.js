@@ -1,7 +1,7 @@
 /* Kiwi Play — app shell: boot, home, game bar, pause, done/rest screens, grown-ups area, log, offline. */
 (function () {
   'use strict';
-  const APP_VERSION = '1.19.0';
+  const APP_VERSION = '1.19.1';
   const $ = (h) => { const t = document.createElement('template'); t.innerHTML = h.trim(); return t.content.firstElementChild; };
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const load = (k, d) => { try { const v = localStorage.getItem('jla.' + k); return v ? JSON.parse(v) : d; } catch (e) { return d; } };
@@ -97,7 +97,8 @@
     if (/ivy|joanna|kendra|salli|kimberly|samantha|ava|allison|aria|jenny|google us english/i.test(n)) s += 3;
     if (/female/i.test(n)) s += 1;
     if (v.localService) s += 2; // keeps working offline
-    if (/compact|espeak|robot|novelty|whisper|bad news|bells|boing|bubbles|cellos|zarvox|trinoids|albert|jester|organ|superstar|wobble/i.test(n)) s -= 20;
+    if (/compact|espeak|robot|novelty|whisper|bad news|good news|bahh|bells|boing|bubbles|cellos|zarvox|trinoids|albert|jester|organ|superstar|wobble|hysterical|deranged|princess/i.test(n)) s -= 20; // joke voices
+    if (/^(fred|junior|kathy|ralph|agnes|bruce|vicki|victoria)$/i.test(n.trim())) s -= 6; // older, robotic-sounding voices
     return s;
   }
   function pickVoice() {
@@ -841,7 +842,7 @@
     };
     const drawList = () => {
       pickVoice();
-      const vs = englishVoices().sort((x, y) => voiceScore(y) - voiceScore(x));
+      const vs = englishVoices().filter((v) => voiceScore(v) > -10 || (voice && v.name === voice.name)).sort((x, y) => voiceScore(y) - voiceScore(x));
       if (!vs.length) { list.innerHTML = '<span class="muted">No voices yet — the tablet may still be loading them.</span>'; return; }
       list.innerHTML = vs.map((v, i) => '<button class="g-btn vbtn' + (voice && v.name === voice.name ? ' primary' : '') + '" data-i="' + i + '">' + esc(v.name.replace(/^(Microsoft|Google|Apple)\s+/i, '')) + ' <span class="muted">' + esc(v.lang) + (v.localService ? '' : ' · needs internet') + '</span></button>').join('');
       list.querySelectorAll('.vbtn').forEach((b) => b.addEventListener('click', () => { settings.voiceName = vs[+b.dataset.i].name; save('settings', settings); drawList(); sample(); }));
