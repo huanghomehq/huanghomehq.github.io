@@ -391,3 +391,7 @@ h1 { margin: 0; font-size: 48px; font-weight: 700; }
 .area-menu .art-choice { height: 460px; }
 .ac-art { width: min(300px, 86%); height: auto; aspect-ratio: 1; }
 .ac-art svg { width: 78%; height: 78%; }
+
+/* v1.19 voice picker */
+.vlist { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; max-height: 260px; overflow-y: auto; }
+.vlist .g-btn { font-size: 16px; padding: 10px 14px; }

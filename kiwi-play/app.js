@@ -1,7 +1,7 @@
 /* Kiwi Play — app shell: boot, home, game bar, pause, done/rest screens, grown-ups area, log, offline. */
 (function () {
   'use strict';
-  const APP_VERSION = '1.18.0';
+  const APP_VERSION = '1.19.0';
   const $ = (h) => { const t = document.createElement('template'); t.innerHTML = h.trim(); return t.content.firstElementChild; };
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const load = (k, d) => { try { const v = localStorage.getItem('jla.' + k); return v ? JSON.parse(v) : d; } catch (e) { return d; } };
@@ -28,7 +28,7 @@
     feelings: [{ who: 'Sam', scene: 'icecream', text: 'Oh no! Sam’s ice cream fell down.', answer: 'sad', help: 'A hug could help.' }]
   };
 
-  const DEF_SETTINGS = { perSet: 3, dailyMin: 15, countMax: 10, sound: true, extra: { date: '', mins: 0 } };
+  const DEF_SETTINGS = { perSet: 3, dailyMin: 15, countMax: 10, sound: true, voiceName: '', voiceStyle: 'calm', extra: { date: '', mins: 0 } };
   let settings = Object.assign({}, DEF_SETTINGS, load('settings', {}));
   let lessons = load('lessons', null) || FALLBACK_LESSONS;
   let usage = load('usage', { date: today(), secs: 0 });
@@ -86,20 +86,51 @@
 
   /* ---------- voice ---------- */
   let voice = null;
+  // Voice choice. A grown-up can pick any installed English voice in Grown-ups; otherwise the most natural-sounding
+  // English voice is chosen automatically (neural/enhanced voices first, voices that work offline preferred).
+  const VOICE_STYLES = { calm: { rate: 0.9, pitch: 1.0, label: 'Calm' }, cheerful: { rate: 0.96, pitch: 1.12, label: 'Cheerful' }, slow: { rate: 0.8, pitch: 1.02, label: 'Slow' } };
+  function englishVoices() { try { return speechSynthesis.getVoices().filter((v) => /^en/i.test(v.lang)); } catch (e) { return []; } }
+  function voiceScore(v) {
+    let s = 0; const n = v.name;
+    if (/en[-_]US/i.test(v.lang)) s += 4; else if (/en[-_](GB|AU|CA|IE|NZ)/i.test(v.lang)) s += 2;
+    if (/natural|neural|enhanced|premium|wavenet|studio|journey|online/i.test(n)) s += 6;
+    if (/ivy|joanna|kendra|salli|kimberly|samantha|ava|allison|aria|jenny|google us english/i.test(n)) s += 3;
+    if (/female/i.test(n)) s += 1;
+    if (v.localService) s += 2; // keeps working offline
+    if (/compact|espeak|robot|novelty|whisper|bad news|bells|boing|bubbles|cellos|zarvox|trinoids|albert|jester|organ|superstar|wobble/i.test(n)) s -= 20;
+    return s;
+  }
   function pickVoice() {
     if (!('speechSynthesis' in window)) return;
-    const vs = speechSynthesis.getVoices();
-    voice = vs.find((v) => /en[-_]US/i.test(v.lang) && /female|samantha|google us/i.test(v.name)) || vs.find((v) => /en[-_]US/i.test(v.lang)) || vs.find((v) => /^en/i.test(v.lang)) || null;
+    const vs = englishVoices();
+    voice = (settings.voiceName && vs.find((v) => v.name === settings.voiceName)) || vs.slice().sort((x, y) => voiceScore(y) - voiceScore(x))[0] || null;
   }
   if ('speechSynthesis' in window) { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
+
+  // Speech text tidied for a friendlier read: short sentences spoken one at a time with a natural pause between them.
+  function speechChunks(t) {
+    const clean = String(t).replace(/—/g, ', ').replace(/…/g, '. ').replace(/’/g, "'").replace(/\s+/g, ' ').trim();
+    return (clean.match(/[^.!?]+[.!?]*/g) || []).map((s) => s.trim()).filter(Boolean);
+  }
+  function utter(text, style) {
+    const st = VOICE_STYLES[style || settings.voiceStyle] || VOICE_STYLES.calm;
+    let v = voice;
+    // Online-only voices go silent on a plane: fall back to the best voice stored on the tablet while offline.
+    if (v && !v.localService && !navigator.onLine) v = englishVoices().filter((x) => x.localService).sort((x, y) => voiceScore(y) - voiceScore(x))[0] || v;
+    const u = new SpeechSynthesisUtterance(text); u.rate = st.rate; u.pitch = st.pitch; u.volume = 1; if (v) { u.voice = v; u.lang = v.lang; }
+    return u;
+  }
   function speak(t) {
     if (!settings.sound || !('speechSynthesis' in window) || !t) return;
     // Android speech engines can fall over when speech is cancelled and restarted many times in a row, so quick taps
-    // only cancel once and the last sentence is spoken after a short pause.
+    // only cancel once and the last thing asked for is spoken after a short pause.
     speakText = t; clearTimeout(speakT);
     try { if (speechSynthesis.speaking || speechSynthesis.pending) speechSynthesis.cancel(); } catch (e) {}
     speakT = setTimeout(() => {
-      try { const u = new SpeechSynthesisUtterance(speakText.replace(/—/g, ',')); u.rate = 0.88; u.pitch = 1.05; if (voice) u.voice = voice; speakU = u; u.onend = u.onerror = () => { if (speakU === u) speakU = null; }; speechSynthesis.speak(u); } catch (e) { /* no voice on this device */ }
+      try {
+        if (!voice) pickVoice();
+        speechChunks(speakText).forEach((c) => { const u = utter(c); speakU = u; u.onend = u.onerror = () => { if (speakU === u) speakU = null; }; speechSynthesis.speak(u); });
+      } catch (e) { /* no voice on this device */ }
     }, 180);
   }
   let speakT = null, speakText = '', speakU = null;
@@ -149,7 +180,7 @@
     show('boot', el);
     el.querySelector('#start').addEventListener('click', () => {
       try { if (document.documentElement.requestFullscreen && !document.fullscreenElement && !window.matchMedia('(display-mode: fullscreen)').matches) document.documentElement.requestFullscreen().catch(() => {}); } catch (e) { /* not allowed */ }
-      if (overLimit()) rest(); else { home(); speak('Hi ' + kidName() + '! Pick a picture, or tap the star.'); }
+      if (overLimit()) rest(); else { home(); speak(hiName() + ' Pick a picture, or tap the star.'); }
     });
   }
 
@@ -718,7 +749,9 @@
       '<section class="g-card"><h2>Play one game</h2><div class="g-games">' + Object.keys(GAMES).filter((k) => AREAS.some((a) => a.games.indexOf(k) >= 0)).map((k) => '<button class="g-btn" data-g="' + k + '">' + esc(GAMES[k].title) + '</button>').join('') + '</div>' +
       '<h2>Settings</h2>' + stepper('dailyMin', 'Daily limit', 5, 60, 5, ' min') + stepper('countMax', 'Count up to', 3, 20, 1) +
       '<div class="set-row"><span>Child’s name (stays on this tablet)</span><input id="kidname" class="g-input" type="text" maxlength="20" value="' + esc(kidName()) + '" placeholder="Name"></div>' +
-      '<div class="set-row"><span>Voice</span><button class="g-btn" id="voice">' + (settings.sound ? 'On' : 'Off') + '</button><button class="g-btn" id="vtest">Test voice</button></div><div class="muted" id="vres" style="font-size:14px;margin-top:6px"></div></section>' +
+      '<div class="set-row"><span>Voice</span><button class="g-btn" id="voice">' + (settings.sound ? 'On' : 'Off') + '</button><button class="g-btn" id="vtest">Test voice</button></div><div class="muted" id="vres" style="font-size:14px;margin-top:6px"></div>' +
+      '<div class="set-row" style="margin-top:10px"><span>Speaking style</span><span id="vstyles"></span></div>' +
+      '<div style="margin-top:8px"><div class="muted" style="font-size:14px">Which voice? Tap one to hear it. The tablet only offers the voices installed on it.</div><div id="vlist" class="vlist"></div></div></section>' +
       '<section class="g-card wide"><div class="g-head"><h2>' + (kidName() ? esc(kidName()) + '’s work' : 'Work log') + '</h2><div class="g-btns"><button class="g-btn" id="export">Send / save log</button><button class="g-btn" id="update">Check for new lessons</button><button class="g-btn" id="clear">Clear log</button></div></div>' +
       '<div class="log"><table><thead><tr><th>When</th><th>Game</th><th>How it went</th><th>Wrong tries</th><th>Time</th></tr></thead><tbody>' +
       (L.length ? L.slice(-60).reverse().map((e) => '<tr><td>' + fmtTime(e.t) + '</td><td>' + esc(e.title) + (e.d ? ' <span class="muted">(' + esc(e.d) + ')</span>' : '') + '</td><td>' + (e.r === 'done' ? 'Finished' : e.r === 'stopped' ? 'Stopped early' : 'Skipped') + '</td><td>' + e.tries + '</td><td>' + (e.secs < 60 ? e.secs + ' s' : Math.round(e.secs / 60) + ' min') + '</td></tr>').join('') : '<tr><td colspan="5" class="muted">Nothing yet.</td></tr>') +
@@ -740,6 +773,7 @@
     const kn = el.querySelector('#kidname'); const saveName = () => { settings.childName = kn.value.trim(); save('settings', settings); }; kn.addEventListener('input', saveName); kn.addEventListener('change', saveName); kn.addEventListener('blur', saveName);
     el.querySelector('#voice').addEventListener('click', (e) => { settings.sound = !settings.sound; save('settings', settings); e.target.textContent = settings.sound ? 'On' : 'Off'; });
     el.querySelector('#vtest').addEventListener('click', () => voiceTest(el.querySelector('#vres')));
+    voicePicker(el);
     el.querySelector('#export').addEventListener('click', exportLog);
     el.querySelector('#update').addEventListener('click', () => {
       if (!navigator.onLine) { grownups('You’re offline. Connect to Wi-Fi and try again.'); return; }
@@ -793,6 +827,29 @@
   }
 
 
+
+  /* Grown-ups voice picker: every English voice on this tablet, best-sounding first. Tapping one plays a sample and
+     keeps it. Speaking style (calm / cheerful / slow) sets speed and pitch. */
+  const VOICE_SAMPLE = "Hi! Let's trace the letter U together. Start on the yellow dot.";
+  function voicePicker(el) {
+    const list = el.querySelector('#vlist'), styles = el.querySelector('#vstyles');
+    if (!('speechSynthesis' in window)) { list.textContent = 'This browser has no voices.'; return; }
+    const sample = () => { clearTimeout(speakT); try { speechSynthesis.cancel(); } catch (e) {} speechChunks(VOICE_SAMPLE).forEach((c) => speechSynthesis.speak(utter(c))); };
+    const drawStyles = () => {
+      styles.innerHTML = Object.keys(VOICE_STYLES).map((k) => '<button class="g-btn' + (settings.voiceStyle === k ? ' primary' : '') + '" data-s="' + k + '">' + VOICE_STYLES[k].label + '</button>').join(' ');
+      styles.querySelectorAll('button').forEach((b) => b.addEventListener('click', () => { settings.voiceStyle = b.dataset.s; save('settings', settings); drawStyles(); sample(); }));
+    };
+    const drawList = () => {
+      pickVoice();
+      const vs = englishVoices().sort((x, y) => voiceScore(y) - voiceScore(x));
+      if (!vs.length) { list.innerHTML = '<span class="muted">No voices yet — the tablet may still be loading them.</span>'; return; }
+      list.innerHTML = vs.map((v, i) => '<button class="g-btn vbtn' + (voice && v.name === voice.name ? ' primary' : '') + '" data-i="' + i + '">' + esc(v.name.replace(/^(Microsoft|Google|Apple)\s+/i, '')) + ' <span class="muted">' + esc(v.lang) + (v.localService ? '' : ' · needs internet') + '</span></button>').join('');
+      list.querySelectorAll('.vbtn').forEach((b) => b.addEventListener('click', () => { settings.voiceName = vs[+b.dataset.i].name; save('settings', settings); drawList(); sample(); }));
+    };
+    drawStyles(); drawList();
+    if (!englishVoices().length) setTimeout(drawList, 1500);
+  }
+
   /* Grown-ups "Test voice": speaks a sentence and reports what this browser actually did, so speech can be checked on the tablet. */
   function voiceTest(out) {
     const show = (t) => { out.textContent = t; };
@@ -804,7 +861,7 @@
     clearTimeout(speakT);
     try { speechSynthesis.cancel(); } catch (e) {}
     let started = false;
-    const u = new SpeechSynthesisUtterance('Hi! The voice is working.'); u.rate = 0.88; u.pitch = 1.05; if (voice) u.voice = voice;
+    const u = utter('Hi! The voice is working.');
     const timer = setTimeout(() => { if (!started) show('✗ Nothing played after 6 seconds. ' + info + '. Check the tablet volume and that a text-to-speech engine is installed (Settings → Accessibility → Text-to-speech).'); }, 6000);
     u.onstart = () => { started = true; show('Speaking… ' + info + '.'); };
     u.onend = () => { clearTimeout(timer); show('✓ Voice works. ' + info + '. (If you heard nothing, turn up the media volume.)'); };
